@@ -18,13 +18,16 @@ fn main() -> io::Result<()> {
         guess_options: game.guess_options(),
         word_display: display_known_letters(game.known_letters()),
         message: Message::Start,
+        game_over: false,
     };
     let mut screen = Screen::new(io::stdout(), content)?;
     screen.draw()?;
     while let Some(guess) = screen.getchar()? {
         let r = game.guess(guess);
         let mut word_display = display_known_letters(game.known_letters());
+        let mut game_over = false;
         let message = if let Some(fate) = game.fate() {
+            game_over = true;
             match fate {
                 Fate::Won => Message::Won,
                 Fate::Lost => {
@@ -65,10 +68,11 @@ fn main() -> io::Result<()> {
             guess_options: game.guess_options(),
             word_display,
             message,
+            game_over,
         };
         screen.update(content)?;
-        if game.fate().is_some() {
-            let _ = screen.getchar();
+        if game_over {
+            let _ = screen.getchar()?;
             break;
         }
     }

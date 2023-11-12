@@ -123,6 +123,7 @@ pub(crate) struct Content {
     pub(crate) guess_options: Vec<Option<char>>,
     pub(crate) word_display: Vec<CharDisplay>,
     pub(crate) message: Message,
+    pub(crate) game_over: bool,
 }
 
 impl Content {
@@ -134,7 +135,7 @@ impl Content {
         Content::GALLOWS_WIDTH + Content::GUTTER + (Content::LETTER_COLUMNS * 2) - 1;
 
     fn render(self) -> Vec<String> {
-        let mut lines = Vec::with_capacity(Content::GALLOWS_HEIGHT + 4);
+        let mut lines = Vec::with_capacity(Content::GALLOWS_HEIGHT + 6);
         for row in Content::draw_gallows(
             self.gallows,
             matches!(self.message, Message::BadGuess { .. } | Message::Lost),
@@ -174,6 +175,12 @@ impl Content {
         lines.push(wordline);
         lines.push(String::new());
         lines.push(self.message.to_string());
+        lines.push(String::new());
+        if self.game_over {
+            lines.push(String::from("Press the Any Key to exit."));
+        } else {
+            lines.push(String::new());
+        }
         lines
     }
 
