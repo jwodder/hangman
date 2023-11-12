@@ -38,7 +38,7 @@ impl Command {
         match self {
             Command::Run(word_source) => {
                 let WordWithHint { word, hint } = word_source.fetch()?;
-                let mut game = Hangman::new(word.as_ref(), ASCII_ALPHABET);
+                let mut game = Hangman::new(word, ASCII_ALPHABET);
                 let content = Content {
                     hint: hint.clone(),
                     gallows: game.gallows(),

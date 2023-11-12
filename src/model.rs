@@ -1,3 +1,4 @@
+use crate::words::Word;
 use std::collections::BTreeMap;
 use strum::{EnumCount, EnumIter, IntoEnumIterator};
 
@@ -58,12 +59,12 @@ pub(crate) struct Hangman {
 }
 
 impl Hangman {
-    pub(crate) fn new(word: &str, alphabet: &str) -> Hangman {
+    pub(crate) fn new(word: Word, alphabet: &str) -> Hangman {
         let letters: BTreeMap<char, bool> = alphabet
             .chars()
             .map(|c| (normalize_char(c), false))
             .collect();
-        let word: Vec<char> = word.chars().map(normalize_char).collect();
+        let word: Vec<char> = word.as_ref().chars().map(normalize_char).collect();
         let known_letters = word
             .iter()
             .map(|&c| (!letters.contains_key(&c)).then_some(c))
