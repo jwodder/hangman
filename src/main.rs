@@ -53,9 +53,31 @@ impl Command {
                     let r = game.guess(guess);
                     let mut word_display = display_known_letters(game.known_letters());
                     let mut game_over = false;
-                    let message = if let Some(fate) = game.fate() {
+                    let mut message = match r {
+                        Response::GoodGuess {
+                            guess,
+                            letters_revealed,
+                        } => {
+                            for cd in &mut word_display {
+                                if *cd == CharDisplay::Plain(guess) {
+                                    *cd = CharDisplay::Highlighted(guess);
+                                }
+                            }
+                            Message::GoodGuess {
+                                guess,
+                                letters_revealed,
+                            }
+                        }
+                        Response::BadGuess { guess } => Message::BadGuess { guess },
+                        Response::AlreadyGuessed { guess } => Message::AlreadyGuessed { guess },
+                        Response::InvalidGuess { guess } => Message::InvalidGuess { guess },
+                        // This can't happen the way we're using the game,
+                        // but we should at least do something reasonable.
+                        Response::GameOver => Message::InvalidGuess { guess },
+                    };
+                    if let Some(fate) = game.fate() {
                         game_over = true;
-                        match fate {
+                        message = match fate {
                             Fate::Won => Message::Won,
                             Fate::Lost => {
                                 for (&ch, cd) in std::iter::zip(game.word(), &mut word_display) {
@@ -67,30 +89,7 @@ impl Command {
                             }
                             Fate::OutOfLetters => Message::OutOfLetters,
                         }
-                    } else {
-                        match r {
-                            Response::GoodGuess {
-                                guess,
-                                letters_revealed,
-                            } => {
-                                for cd in &mut word_display {
-                                    if *cd == CharDisplay::Plain(guess) {
-                                        *cd = CharDisplay::Highlighted(guess);
-                                    }
-                                }
-                                Message::GoodGuess {
-                                    guess,
-                                    letters_revealed,
-                                }
-                            }
-                            Response::BadGuess { guess } => Message::BadGuess { guess },
-                            Response::AlreadyGuessed { guess } => Message::AlreadyGuessed { guess },
-                            Response::InvalidGuess { guess } => Message::InvalidGuess { guess },
-                            // This can't happen the way we're using the game,
-                            // but we should at least do something reasonable.
-                            Response::GameOver => Message::InvalidGuess { guess },
-                        }
-                    };
+                    }
                     let content = Content {
                         hint: hint.clone(),
                         gallows: game.gallows(),
