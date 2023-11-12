@@ -103,12 +103,23 @@ impl Hangman {
         }
     }
 
+    pub(crate) fn guess_options(&self) -> Vec<Option<char>> {
+        self.letters
+            .iter()
+            .map(|(&ch, &b)| (!b).then_some(ch))
+            .collect()
+    }
+
     pub(crate) fn mistakes_made(&self) -> usize {
         self.gallows as usize
     }
 
     pub(crate) fn max_mistakes() -> usize {
         Gallows::COUNT
+    }
+
+    pub(crate) fn mistakes_left(&self) -> usize {
+        Hangman::max_mistakes() - self.mistakes_made()
     }
 
     fn determine_fate(&mut self) {
