@@ -16,7 +16,7 @@ fn main() -> io::Result<()> {
     let content = Content {
         gallows: game.gallows(),
         guess_options: game.guess_options(),
-        known_letters: game.known_letters().to_vec(),
+        word_display: display_known_letters(game.known_letters()),
         message: Message::Start,
     };
     let mut screen = Screen::new(io::stdout(), content)?;
@@ -24,18 +24,33 @@ fn main() -> io::Result<()> {
     loop {
         let guess = screen.getchar()?;
         let r = game.guess(guess);
+        let mut word_display = display_known_letters(game.known_letters());
         let message = if let Some(fate) = game.fate() {
             match fate {
                 Fate::Won => Message::Won,
-                Fate::Lost => Message::Lost,
+                Fate::Lost => {
+                    for (&ch, cd) in std::iter::zip(game.word(), &mut word_display) {
+                        if *cd == CharDisplay::Blank {
+                            *cd = CharDisplay::Highlighted(ch);
+                        }
+                    }
+                    Message::Lost
+                }
                 Fate::OutOfLetters => Message::OutOfLetters,
             }
         } else {
             match r {
-                Response::GoodGuess { letters_revealed } => Message::GoodGuess {
-                    guess,
-                    letters_revealed,
-                },
+                Response::GoodGuess { letters_revealed } => {
+                    for cd in &mut word_display {
+                        if *cd == CharDisplay::Plain(guess) {
+                            *cd = CharDisplay::Highlighted(guess);
+                        }
+                    }
+                    Message::GoodGuess {
+                        guess,
+                        letters_revealed,
+                    }
+                }
                 Response::BadGuess => Message::BadGuess {
                     guess,
                     mistakes_left: game.mistakes_left(),
@@ -48,7 +63,7 @@ fn main() -> io::Result<()> {
         let content = Content {
             gallows: game.gallows(),
             guess_options: game.guess_options(),
-            known_letters: game.known_letters().to_vec(),
+            word_display,
             message,
         };
         screen.update(content)?;
@@ -58,4 +73,14 @@ fn main() -> io::Result<()> {
         }
     }
     Ok(())
+}
+
+fn display_known_letters(known: &[Option<char>]) -> Vec<CharDisplay> {
+    known
+        .iter()
+        .map(|&opt| match opt {
+            Some(ch) => CharDisplay::Plain(ch),
+            None => CharDisplay::Blank,
+        })
+        .collect()
 }

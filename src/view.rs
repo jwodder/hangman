@@ -119,7 +119,7 @@ impl<W: Write> Drop for Screen<W> {
 pub(crate) struct Content {
     pub(crate) gallows: Gallows,
     pub(crate) guess_options: Vec<Option<char>>,
-    pub(crate) known_letters: Vec<Option<char>>,
+    pub(crate) word_display: Vec<CharDisplay>,
     pub(crate) message: Message,
 }
 
@@ -160,24 +160,14 @@ impl Content {
             }
         }
         lines.push(String::new());
-
-        let indent = Content::WIDTH.saturating_sub(self.known_letters.len()) / 2;
+        let indent = Content::WIDTH.saturating_sub(self.word_display.len()) / 2;
         let mut wordline = " ".repeat(indent);
-        let highlight = if let Message::GoodGuess { guess, .. } = self.message {
-            Some(guess)
-        } else {
-            None
-        };
         let mut first = true;
-        for opt in self.known_letters {
+        for ch in self.word_display {
             if !std::mem::replace(&mut first, false) {
                 wordline.push(' ');
             }
-            match opt {
-                Some(ch) if opt == highlight => write!(wordline, "\x1B[1m{}\x1B[m", ch).unwrap(),
-                Some(ch) => wordline.push(ch),
-                None => wordline.push('_'),
-            }
+            write!(wordline, "{ch}").unwrap();
         }
         lines.push(wordline);
         lines.push(String::new());
@@ -251,6 +241,23 @@ impl Content {
                 "  │  / \x1B[1;31m\\\x1B[m",
                 "──┴──   ",
             ],
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CharDisplay {
+    Plain(char),
+    Highlighted(char),
+    Blank,
+}
+
+impl fmt::Display for CharDisplay {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            CharDisplay::Plain(ch) => write!(f, "{ch}"),
+            CharDisplay::Highlighted(ch) => write!(f, "\x1B[1m{ch}\x1B[m"),
+            CharDisplay::Blank => write!(f, "_"),
         }
     }
 }

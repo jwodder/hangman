@@ -130,6 +130,10 @@ impl Hangman {
         &self.known_letters
     }
 
+    pub(crate) fn word(&self) -> &[char] {
+        &self.word
+    }
+
     fn determine_fate(&mut self) {
         self.fate = if self.known_letters.iter().all(Option::is_some) {
             Some(Fate::Won)
