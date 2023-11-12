@@ -170,7 +170,7 @@ impl Content {
             }
         }
         lines.push(String::new());
-        let indent = Content::WIDTH.saturating_sub(self.word_display.len()) / 2;
+        let indent = Content::WIDTH.saturating_sub(self.word_display.len() * 2 - 1) / 2;
         let mut wordline = " ".repeat(indent);
         let mut first = true;
         for ch in self.word_display {
@@ -196,7 +196,7 @@ impl Content {
         highlight: bool,
     ) -> &'static [&'static str; Content::GALLOWS_HEIGHT] {
         match (gallows, highlight) {
-            (Gallows::Empty, _) => &["  ┌───┐ ", "  │     ", "  │     ", "  │     ", "──┴──   "],
+            (Gallows::Start, _) => &["  ┌───┐ ", "  │     ", "  │     ", "  │     ", "──┴──   "],
             (Gallows::AddHead, false) => {
                 &["  ┌───┐ ", "  │   o ", "  │     ", "  │     ", "──┴──   "]
             }
@@ -348,6 +348,404 @@ mod tests {
                 let line = strip_ansi_escapes::strip_str(line);
                 assert_eq!(UnicodeWidthStr::width(&*line), Content::GALLOWS_WIDTH);
             }
+        }
+    }
+
+    mod content_render {
+        use super::*;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn start() {
+            let content = Content {
+                hint: Some(String::from("A difficult word")),
+                gallows: Gallows::Start,
+                guess_options: vec![
+                    Some('A'),
+                    Some('B'),
+                    Some('C'),
+                    Some('D'),
+                    Some('E'),
+                    Some('F'),
+                    Some('G'),
+                    Some('H'),
+                    Some('I'),
+                    Some('J'),
+                    Some('K'),
+                    Some('L'),
+                    Some('M'),
+                    Some('N'),
+                    Some('O'),
+                    Some('P'),
+                    Some('Q'),
+                    Some('R'),
+                    Some('S'),
+                    Some('T'),
+                    Some('U'),
+                    Some('V'),
+                    Some('W'),
+                    Some('X'),
+                    Some('Y'),
+                    Some('Z'),
+                ],
+                word_display: vec![
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                ],
+                message: Message::Start,
+                game_over: false,
+            };
+            let lines = content.render();
+            assert_eq!(
+                lines,
+                [
+                    "Hint: A difficult word",
+                    "",
+                    "  ┌───┐     A B C D E F",
+                    "  │         G H I J K L",
+                    "  │         M N O P Q R",
+                    "  │         S T U V W X",
+                    "──┴──       Y Z",
+                    "",
+                    "      _ _ _ _ _ _",
+                    "",
+                    "Try to guess the secret word!",
+                    "",
+                    "",
+                ]
+            );
+        }
+
+        #[test]
+        fn no_hint() {
+            let content = Content {
+                hint: None,
+                gallows: Gallows::Start,
+                guess_options: vec![
+                    Some('A'),
+                    Some('B'),
+                    Some('C'),
+                    Some('D'),
+                    Some('E'),
+                    Some('F'),
+                    Some('G'),
+                    Some('H'),
+                    Some('I'),
+                    Some('J'),
+                    Some('K'),
+                    Some('L'),
+                    Some('M'),
+                    Some('N'),
+                    Some('O'),
+                    Some('P'),
+                    Some('Q'),
+                    Some('R'),
+                    Some('S'),
+                    Some('T'),
+                    Some('U'),
+                    Some('V'),
+                    Some('W'),
+                    Some('X'),
+                    Some('Y'),
+                    Some('Z'),
+                ],
+                word_display: vec![
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                ],
+                message: Message::Start,
+                game_over: false,
+            };
+            let lines = content.render();
+            assert_eq!(
+                lines,
+                [
+                    "",
+                    "",
+                    "  ┌───┐     A B C D E F",
+                    "  │         G H I J K L",
+                    "  │         M N O P Q R",
+                    "  │         S T U V W X",
+                    "──┴──       Y Z",
+                    "",
+                    "      _ _ _ _ _ _",
+                    "",
+                    "Try to guess the secret word!",
+                    "",
+                    "",
+                ]
+            );
+        }
+
+        #[test]
+        fn after_good_guess() {
+            let content = Content {
+                hint: Some(String::from("A difficult word")),
+                gallows: Gallows::Start,
+                guess_options: vec![
+                    None,
+                    Some('B'),
+                    Some('C'),
+                    Some('D'),
+                    Some('E'),
+                    Some('F'),
+                    Some('G'),
+                    Some('H'),
+                    Some('I'),
+                    Some('J'),
+                    Some('K'),
+                    Some('L'),
+                    Some('M'),
+                    Some('N'),
+                    Some('O'),
+                    Some('P'),
+                    Some('Q'),
+                    Some('R'),
+                    Some('S'),
+                    Some('T'),
+                    Some('U'),
+                    Some('V'),
+                    Some('W'),
+                    Some('X'),
+                    Some('Y'),
+                    Some('Z'),
+                ],
+                word_display: vec![
+                    CharDisplay::Highlighted('A'),
+                    CharDisplay::Blank,
+                    CharDisplay::Highlighted('A'),
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                ],
+                message: Message::GoodGuess {
+                    guess: 'A',
+                    letters_revealed: 2,
+                },
+                game_over: false,
+            };
+            let lines = content.render();
+            assert_eq!(
+                lines,
+                [
+                    "Hint: A difficult word",
+                    "",
+                    "  ┌───┐       B C D E F",
+                    "  │         G H I J K L",
+                    "  │         M N O P Q R",
+                    "  │         S T U V W X",
+                    "──┴──       Y Z",
+                    "",
+                    "      \x1B[1mA\x1B[m _ \x1B[1mA\x1B[m _ _ _",
+                    "",
+                    "Correct!  There are 2 'A's in the word.",
+                    "",
+                    "",
+                ]
+            );
+        }
+
+        #[test]
+        fn after_bad_guess() {
+            let content = Content {
+                hint: Some(String::from("A difficult word")),
+                gallows: Gallows::AddHead,
+                guess_options: vec![
+                    None,
+                    Some('B'),
+                    Some('C'),
+                    Some('D'),
+                    None,
+                    Some('F'),
+                    Some('G'),
+                    Some('H'),
+                    Some('I'),
+                    Some('J'),
+                    Some('K'),
+                    Some('L'),
+                    Some('M'),
+                    Some('N'),
+                    Some('O'),
+                    Some('P'),
+                    Some('Q'),
+                    Some('R'),
+                    Some('S'),
+                    Some('T'),
+                    Some('U'),
+                    Some('V'),
+                    Some('W'),
+                    Some('X'),
+                    Some('Y'),
+                    Some('Z'),
+                ],
+                word_display: vec![
+                    CharDisplay::Plain('A'),
+                    CharDisplay::Blank,
+                    CharDisplay::Plain('A'),
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                    CharDisplay::Blank,
+                ],
+                message: Message::BadGuess { guess: 'E' },
+                game_over: false,
+            };
+            let lines = content.render();
+            assert_eq!(
+                lines,
+                [
+                    "Hint: A difficult word",
+                    "",
+                    "  ┌───┐       B C D   F",
+                    "  │   \x1B[1;31mo\x1B[m     G H I J K L",
+                    "  │         M N O P Q R",
+                    "  │         S T U V W X",
+                    "──┴──       Y Z",
+                    "",
+                    "      A _ A _ _ _",
+                    "",
+                    "Wrong!  There's no 'E' in the word.",
+                    "",
+                    "",
+                ]
+            );
+        }
+
+        #[test]
+        fn win() {
+            let content = Content {
+                hint: Some(String::from("A difficult word")),
+                gallows: Gallows::AddRightArm,
+                guess_options: vec![
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    Some('F'),
+                    Some('G'),
+                    Some('H'),
+                    None,
+                    Some('J'),
+                    Some('K'),
+                    Some('L'),
+                    Some('M'),
+                    Some('N'),
+                    Some('O'),
+                    Some('P'),
+                    Some('Q'),
+                    Some('R'),
+                    None,
+                    None,
+                    None,
+                    Some('V'),
+                    Some('W'),
+                    Some('X'),
+                    Some('Y'),
+                    Some('Z'),
+                ],
+                word_display: vec![
+                    CharDisplay::Plain('A'),
+                    CharDisplay::Plain('B'),
+                    CharDisplay::Plain('A'),
+                    CharDisplay::Plain('C'),
+                    CharDisplay::Plain('U'),
+                    CharDisplay::Plain('S'),
+                ],
+                message: Message::Won,
+                game_over: true,
+            };
+            let lines = content.render();
+            assert_eq!(
+                lines,
+                [
+                    "Hint: A difficult word",
+                    "",
+                    "  ┌───┐               F",
+                    "  │   o     G H   J K L",
+                    "  │  /|\\    M N O P Q R",
+                    "  │               V W X",
+                    "──┴──       Y Z",
+                    "",
+                    "      A B A C U S",
+                    "",
+                    "You win!",
+                    "",
+                    "Press the Any Key to exit.",
+                ]
+            );
+        }
+
+        #[test]
+        fn lose() {
+            let content = Content {
+                hint: Some(String::from("A difficult word")),
+                gallows: Gallows::AddRightLeg,
+                guess_options: vec![
+                    None,
+                    Some('B'),
+                    Some('C'),
+                    Some('D'),
+                    None,
+                    Some('F'),
+                    Some('G'),
+                    Some('H'),
+                    None,
+                    Some('J'),
+                    Some('K'),
+                    Some('L'),
+                    Some('M'),
+                    Some('N'),
+                    None,
+                    Some('P'),
+                    Some('Q'),
+                    None,
+                    Some('S'),
+                    None,
+                    None,
+                    Some('V'),
+                    Some('W'),
+                    Some('X'),
+                    None,
+                    Some('Z'),
+                ],
+                word_display: vec![
+                    CharDisplay::Plain('A'),
+                    CharDisplay::Blank,
+                    CharDisplay::Plain('A'),
+                    CharDisplay::Blank,
+                    CharDisplay::Plain('U'),
+                    CharDisplay::Blank,
+                ],
+                message: Message::Lost,
+                game_over: true,
+            };
+            let lines = content.render();
+            assert_eq!(
+                lines,
+                [
+                    "Hint: A difficult word",
+                    "",
+                    "  ┌───┐       B C D   F",
+                    "  │   o     G H   J K L",
+                    "  │  /|\\    M N   P Q  ",
+                    "  │  / \x1B[1;31m\\\x1B[m    S     V W X",
+                    "──┴──         Z",
+                    "",
+                    "      A _ A _ U _",
+                    "",
+                    "Oh dear, you are dead!",
+                    "",
+                    "Press the Any Key to exit.",
+                ]
+            );
         }
     }
 }

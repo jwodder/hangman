@@ -23,5 +23,6 @@ strum = { version = "0.25.0", features = ["derive"] }
 thiserror = "1.0.50"
 
 [dev-dependencies]
+pretty_assertions = "1.4.0"
 strip-ansi-escapes = "0.2.0"
 unicode-width = "0.1.11"

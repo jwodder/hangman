@@ -5,7 +5,7 @@ pub(crate) static ASCII_ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 #[derive(Clone, Copy, Debug, EnumCount, EnumIter, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Gallows {
-    Empty,
+    Start,
     AddHead,
     AddTorso,
     AddLeftArm,
