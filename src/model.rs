@@ -27,11 +27,20 @@ pub(crate) enum Fate {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Response {
-    GoodGuess { letters_revealed: usize },
-    BadGuess,
-    AlreadyGuessed,
+    GoodGuess {
+        guess: char,
+        letters_revealed: usize,
+    },
+    BadGuess {
+        guess: char,
+    },
+    AlreadyGuessed {
+        guess: char,
+    },
     // Guess was not in the allowed alphabet
-    InvalidGuess,
+    InvalidGuess {
+        guess: char,
+    },
     // User guessed after game was over
     GameOver,
 }
@@ -71,17 +80,17 @@ impl Hangman {
         }
     }
 
-    pub(crate) fn guess(&mut self, ch: char) -> Response {
+    pub(crate) fn guess(&mut self, guess: char) -> Response {
         if self.fate().is_some() {
             return Response::GameOver;
         }
-        let ch = normalize_char(ch);
-        match self.letters.get_mut(&ch) {
-            Some(true) => Response::AlreadyGuessed,
+        let guess = normalize_char(guess);
+        match self.letters.get_mut(&guess) {
+            Some(true) => Response::AlreadyGuessed { guess },
             Some(b @ false) => {
                 let mut letters_revealed = 0;
                 for (&wch, known) in self.word.iter().zip(self.known_letters.iter_mut()) {
-                    if wch == ch {
+                    if wch == guess {
                         debug_assert!(known.is_none());
                         letters_revealed += 1;
                         *known = Some(wch);
@@ -89,17 +98,20 @@ impl Hangman {
                 }
                 *b = true;
                 let r = if letters_revealed > 0 {
-                    Response::GoodGuess { letters_revealed }
+                    Response::GoodGuess {
+                        guess,
+                        letters_revealed,
+                    }
                 } else {
                     if let Some(g) = self.gallows_iter.next() {
                         self.gallows = g;
                     }
-                    Response::BadGuess
+                    Response::BadGuess { guess }
                 };
                 self.determine_fate();
                 r
             }
-            None => Response::InvalidGuess,
+            None => Response::InvalidGuess { guess },
         }
     }
 
@@ -153,7 +165,7 @@ impl Hangman {
     }
 }
 
-pub(crate) fn normalize_char(c: char) -> char {
+fn normalize_char(c: char) -> char {
     c.to_ascii_uppercase()
 }
 

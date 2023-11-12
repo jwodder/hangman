@@ -69,11 +69,13 @@ impl Command {
                         }
                     } else {
                         match r {
-                            Response::GoodGuess { letters_revealed } => {
-                                let normguess = normalize_char(guess);
+                            Response::GoodGuess {
+                                guess,
+                                letters_revealed,
+                            } => {
                                 for cd in &mut word_display {
-                                    if *cd == CharDisplay::Plain(normguess) {
-                                        *cd = CharDisplay::Highlighted(normguess);
+                                    if *cd == CharDisplay::Plain(guess) {
+                                        *cd = CharDisplay::Highlighted(guess);
                                     }
                                 }
                                 Message::GoodGuess {
@@ -81,9 +83,9 @@ impl Command {
                                     letters_revealed,
                                 }
                             }
-                            Response::BadGuess => Message::BadGuess { guess },
-                            Response::AlreadyGuessed => Message::AlreadyGuessed { guess },
-                            Response::InvalidGuess => Message::InvalidGuess { guess },
+                            Response::BadGuess { guess } => Message::BadGuess { guess },
+                            Response::AlreadyGuessed { guess } => Message::AlreadyGuessed { guess },
+                            Response::InvalidGuess { guess } => Message::InvalidGuess { guess },
                             // This can't happen the way we're using the game,
                             // but we should at least do something reasonable.
                             Response::GameOver => Message::InvalidGuess { guess },
