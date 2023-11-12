@@ -1,0 +1,14 @@
+[package]
+name = "hangman"
+version = "0.1.0-dev"
+edition = "2021"
+rust-version = "1.70"
+description = "Hangman in Rust"
+authors = ["John Thorvald Wodder II <hangman@varonathe.org>"]
+repository = "https://github.com/jwodder/hangman"
+documentation = "https://github.com/jwodder/hangman"
+license = "MIT"
+publish = false
+
+[dependencies]
+strum = { version = "0.25.0", features = ["derive"] }
