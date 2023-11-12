@@ -12,4 +12,5 @@ publish = false
 
 [dependencies]
 crossterm = "0.27.0"
+rand = "0.8.5"
 strum = { version = "0.25.0", features = ["derive"] }

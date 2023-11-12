@@ -27,7 +27,7 @@ pub(crate) enum Fate {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Response {
-    GoodGuess,
+    GoodGuess { letters_revealed: usize },
     BadGuess,
     AlreadyGuessed,
     // Guess was not in the allowed alphabet
@@ -79,17 +79,17 @@ impl Hangman {
         match self.letters.get_mut(&ch) {
             Some(true) => Response::AlreadyGuessed,
             Some(b @ false) => {
-                let mut any = false;
+                let mut letters_revealed = 0;
                 for (&wch, known) in self.word.iter().zip(self.known_letters.iter_mut()) {
                     if wch == ch {
                         debug_assert!(known.is_none());
-                        any = true;
+                        letters_revealed += 1;
                         *known = Some(wch);
                     }
                 }
                 *b = true;
-                let r = if any {
-                    Response::GoodGuess
+                let r = if letters_revealed > 0 {
+                    Response::GoodGuess { letters_revealed }
                 } else {
                     if let Some(g) = self.gallows_iter.next() {
                         self.gallows = g;
@@ -120,6 +120,14 @@ impl Hangman {
 
     pub(crate) fn mistakes_left(&self) -> usize {
         Hangman::max_mistakes() - self.mistakes_made()
+    }
+
+    pub(crate) fn gallows(&self) -> Gallows {
+        self.gallows
+    }
+
+    pub(crate) fn known_letters(&self) -> &[Option<char>] {
+        &self.known_letters
     }
 
     fn determine_fate(&mut self) {

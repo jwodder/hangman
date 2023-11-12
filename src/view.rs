@@ -18,10 +18,11 @@ pub(crate) struct Screen<W: Write> {
     inner: W,
     columns: u16,
     rows: u16,
+    lines: Vec<String>,
 }
 
 impl<W: Write> Screen<W> {
-    pub(crate) fn new(mut inner: W) -> io::Result<Screen<W>> {
+    pub(crate) fn new(mut inner: W, content: Content) -> io::Result<Screen<W>> {
         let (columns, rows) = size()?;
         inner.execute(EnterAlternateScreen)?;
         if let Err(e) = enable_raw_mode() {
@@ -37,6 +38,7 @@ impl<W: Write> Screen<W> {
             inner,
             columns,
             rows,
+            lines: content.render(),
         })
     }
 
@@ -66,27 +68,33 @@ impl<W: Write> Screen<W> {
                     }
                 }
                 Event::Resize(columns, rows) => {
+                    // TODO: Debounce resize floods
                     self.columns = columns;
                     self.rows = rows;
-                    // TODO: Redraw
+                    self.draw()?;
                 }
                 _ => (),
             }
         }
     }
 
-    pub(crate) fn display(&mut self, content: Content) -> io::Result<()> {
-        let lines = content.render();
+    pub(crate) fn update(&mut self, content: Content) -> io::Result<()> {
+        self.lines = content.render();
+        self.draw()?;
+        Ok(())
+    }
+
+    fn draw(&mut self) -> io::Result<()> {
         let left_margin = match u16::try_from(Content::WIDTH) {
             Ok(width) => self.columns.saturating_sub(width) / 2,
             Err(_) => 0,
         };
-        let top_margin = match u16::try_from(lines.len()) {
+        let top_margin = match u16::try_from(self.lines.len()) {
             Ok(length) => self.rows.saturating_sub(length) / 2,
             Err(_) => 0,
         };
         queue!(self.inner, Clear(ClearType::All))?;
-        for (y, ln) in std::iter::zip(top_margin.., lines) {
+        for (y, ln) in std::iter::zip(top_margin.., &self.lines) {
             queue!(self.inner, MoveTo(left_margin, y), Print(ln))?;
         }
         self.inner.flush()?;
@@ -101,7 +109,7 @@ impl<W: Write> Screen<W> {
 
 impl<W: Write> Drop for Screen<W> {
     fn drop(&mut self) {
-        let _ = self.inner.execute(Hide);
+        let _ = self.inner.execute(Show);
         let _ = disable_raw_mode();
         let _ = self.inner.execute(LeaveAlternateScreen);
     }
