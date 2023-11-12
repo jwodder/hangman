@@ -42,17 +42,8 @@ impl<W: Write> Screen<W> {
         })
     }
 
-    pub(crate) fn getchar(&mut self) -> io::Result<Option<char>> {
-        fn extract_char(code: KeyCode, modifiers: KeyModifiers) -> Option<char> {
-            let normal_modifiers = KeyModifiers::NONE | KeyModifiers::SHIFT;
-            if normal_modifiers.contains(modifiers) {
-                if let KeyCode::Char(c) = code {
-                    return Some(c);
-                }
-            }
-            None
-        }
-
+    pub(crate) fn read_guess(&mut self) -> io::Result<Option<char>> {
+        let normal_modifiers = KeyModifiers::NONE | KeyModifiers::SHIFT;
         loop {
             match read()? {
                 Event::Key(KeyEvent {
@@ -64,11 +55,12 @@ impl<W: Write> Screen<W> {
                     kind: KeyEventKind::Press,
                     ..
                 }) => {
-                    if let Some(ch) = extract_char(code, modifiers) {
-                        return Ok(Some(ch));
-                    } else {
-                        self.beep()?;
+                    if normal_modifiers.contains(modifiers) {
+                        if let KeyCode::Char(ch) = code {
+                            return Ok(Some(ch));
+                        }
                     }
+                    self.beep()?;
                 }
                 Event::Resize(columns, rows) => {
                     self.columns = columns;
@@ -78,6 +70,10 @@ impl<W: Write> Screen<W> {
                 _ => (),
             }
         }
+    }
+
+    pub(crate) fn pause(&mut self) -> io::Result<()> {
+        self.read_guess().map(|_| ())
     }
 
     pub(crate) fn update(&mut self, content: Content) -> io::Result<()> {

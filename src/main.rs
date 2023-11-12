@@ -49,7 +49,7 @@ impl Command {
                 };
                 let mut screen = Screen::new(io::stdout(), content)?;
                 screen.draw()?;
-                while let Some(guess) = screen.getchar()? {
+                while let Some(guess) = screen.read_guess()? {
                     let r = game.guess(guess);
                     let mut word_display = display_known_letters(game.known_letters());
                     let mut game_over = false;
@@ -101,7 +101,7 @@ impl Command {
                     };
                     screen.update(content)?;
                     if game_over {
-                        let _ = screen.getchar()?;
+                        screen.pause()?;
                         break;
                     }
                 }
