@@ -41,9 +41,10 @@ fn main() -> io::Result<()> {
         } else {
             match r {
                 Response::GoodGuess { letters_revealed } => {
+                    let normguess = normalize_char(guess);
                     for cd in &mut word_display {
-                        if *cd == CharDisplay::Plain(guess) {
-                            *cd = CharDisplay::Highlighted(guess);
+                        if *cd == CharDisplay::Plain(normguess) {
+                            *cd = CharDisplay::Highlighted(normguess);
                         }
                     }
                     Message::GoodGuess {

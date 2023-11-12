@@ -151,6 +151,6 @@ impl Hangman {
     }
 }
 
-fn normalize_char(c: char) -> char {
+pub(crate) fn normalize_char(c: char) -> char {
     c.to_ascii_uppercase()
 }
