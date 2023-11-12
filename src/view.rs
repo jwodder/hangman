@@ -309,3 +309,23 @@ impl fmt::Display for Message {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use strum::IntoEnumIterator;
+    use unicode_width::UnicodeWidthStr;
+
+    #[test]
+    fn test_gallows_widths() {
+        for gallows in Gallows::iter() {
+            for line in Content::draw_gallows(gallows, false) {
+                assert_eq!(UnicodeWidthStr::width(*line), Content::GALLOWS_WIDTH);
+            }
+            for line in Content::draw_gallows(gallows, false) {
+                let line = strip_ansi_escapes::strip_str(line);
+                assert_eq!(UnicodeWidthStr::width(&*line), Content::GALLOWS_WIDTH);
+            }
+        }
+    }
+}
