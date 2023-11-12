@@ -3,17 +3,32 @@ mod view;
 use crate::model::*;
 use crate::view::*;
 use rand::seq::IteratorRandom;
+use serde::Deserialize;
 use std::io;
 
-static WORDS: &str = include_str!("words.txt");
+static WORDS: &[u8] = include_bytes!("words.csv");
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct Word {
+    word: String,
+    #[serde(default)]
+    hint: Option<String>,
+}
 
 fn main() -> io::Result<()> {
-    let word = WORDS
-        .lines()
+    let reader = csv::ReaderBuilder::new()
+        .flexible(true)
+        .has_headers(false)
+        .trim(csv::Trim::All)
+        .from_reader(WORDS);
+    let Word { word, hint } = reader
+        .into_deserialize::<Word>()
         .choose(&mut rand::thread_rng())
-        .expect("wordlist should be nonempty");
-    let mut game = Hangman::new(word, ASCII_ALPHABET);
+        .expect("wordlist should be nonempty")
+        .expect("reading wordlist should not fail");
+    let mut game = Hangman::new(&word, ASCII_ALPHABET);
     let content = Content {
+        hint: hint.clone(),
         gallows: game.gallows(),
         guess_options: game.guess_options(),
         word_display: display_known_letters(game.known_letters()),
@@ -61,6 +76,7 @@ fn main() -> io::Result<()> {
             }
         };
         let content = Content {
+            hint: hint.clone(),
             gallows: game.gallows(),
             guess_options: game.guess_options(),
             word_display,

@@ -12,7 +12,9 @@ publish = false
 
 [dependencies]
 crossterm = "0.27.0"
+csv = "1.3.0"
 rand = "0.8.5"
+serde = { version = "1.0.192", features = ["derive"] }
 strum = { version = "0.25.0", features = ["derive"] }
 
 [dev-dependencies]

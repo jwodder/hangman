@@ -119,6 +119,7 @@ impl<W: Write> Drop for Screen<W> {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Content {
+    pub(crate) hint: Option<String>,
     pub(crate) gallows: Gallows,
     pub(crate) guess_options: Vec<Option<char>>,
     pub(crate) word_display: Vec<CharDisplay>,
@@ -135,7 +136,13 @@ impl Content {
         Content::GALLOWS_WIDTH + Content::GUTTER + (Content::LETTER_COLUMNS * 2) - 1;
 
     fn render(self) -> Vec<String> {
-        let mut lines = Vec::with_capacity(Content::GALLOWS_HEIGHT + 6);
+        let mut lines = Vec::with_capacity(Content::GALLOWS_HEIGHT + 8);
+        if let Some(hint) = self.hint {
+            lines.push(format!("Hint: {hint}"));
+        } else {
+            lines.push(String::new());
+        }
+        lines.push(String::new());
         for row in Content::draw_gallows(
             self.gallows,
             matches!(self.message, Message::BadGuess { .. } | Message::Lost),
@@ -147,7 +154,7 @@ impl Content {
             .chunks(Content::LETTER_COLUMNS)
             .enumerate()
         {
-            let ln = match lines.get_mut(i) {
+            let ln = match lines.get_mut(i + 2) {
                 Some(ln) => ln,
                 None => {
                     lines.push(" ".repeat(Content::GALLOWS_WIDTH + Content::GUTTER));
