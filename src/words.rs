@@ -97,12 +97,32 @@ impl WordSource {
     }
 }
 
-fn word_from_csv<R: std::io::Read>(reader: R) -> Option<Result<WordWithHint, csv::Error>> {
+fn iter_words<R: std::io::Read>(reader: R) -> csv::DeserializeRecordsIntoIter<R, WordWithHint> {
     csv::ReaderBuilder::new()
         .flexible(true)
         .has_headers(false)
         .trim(csv::Trim::All)
         .from_reader(reader)
         .into_deserialize::<WordWithHint>()
-        .choose(&mut rand::thread_rng())
+}
+
+fn word_from_csv<R: std::io::Read>(reader: R) -> Option<Result<WordWithHint, csv::Error>> {
+    iter_words(reader).choose(&mut rand::thread_rng())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_nonempty_builtin_list() {
+        let builtins = iter_words(WORDS);
+        assert!(builtins.count() > 0);
+    }
+
+    #[test]
+    fn test_builtin_list_ok() {
+        let mut builtins = iter_words(WORDS);
+        assert!(builtins.all(|r| r.is_ok()));
+    }
 }
