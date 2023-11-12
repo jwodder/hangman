@@ -54,10 +54,7 @@ fn main() -> io::Result<()> {
                         letters_revealed,
                     }
                 }
-                Response::BadGuess => Message::BadGuess {
-                    guess,
-                    mistakes_left: game.mistakes_left(),
-                },
+                Response::BadGuess => Message::BadGuess { guess },
                 Response::AlreadyGuessed => Message::AlreadyGuessed { guess },
                 Response::InvalidGuess => Message::InvalidGuess { guess },
                 Response::GameOver => Message::InvalidGuess { guess },

@@ -280,7 +280,6 @@ pub enum Message {
     },
     BadGuess {
         guess: char,
-        mistakes_left: usize,
     },
     AlreadyGuessed {
         guess: char,

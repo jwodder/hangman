@@ -110,6 +110,7 @@ impl Hangman {
             .collect()
     }
 
+    /*
     pub(crate) fn mistakes_made(&self) -> usize {
         self.gallows as usize
     }
@@ -121,6 +122,7 @@ impl Hangman {
     pub(crate) fn mistakes_left(&self) -> usize {
         Hangman::max_mistakes() - self.mistakes_made()
     }
+    */
 
     pub(crate) fn gallows(&self) -> Gallows {
         self.gallows
