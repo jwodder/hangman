@@ -1,95 +1,135 @@
 mod model;
 mod view;
+mod words;
 use crate::model::*;
 use crate::view::*;
-use rand::seq::IteratorRandom;
-use serde::Deserialize;
+use crate::words::*;
+use lexopt::{Arg, Parser, ValueExt};
+use patharg::InputArg;
 use std::io;
 
-static WORDS: &[u8] = include_bytes!("words.csv");
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct Word {
-    word: String,
-    #[serde(default)]
-    hint: Option<String>,
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum Command {
+    Run(WordSource),
+    Help,
+    Version,
 }
 
-fn main() -> io::Result<()> {
-    let reader = csv::ReaderBuilder::new()
-        .flexible(true)
-        .has_headers(false)
-        .trim(csv::Trim::All)
-        .from_reader(WORDS);
-    let Word { word, hint } = reader
-        .into_deserialize::<Word>()
-        .choose(&mut rand::thread_rng())
-        .expect("wordlist should be nonempty")
-        .expect("reading wordlist should not fail");
-    let mut game = Hangman::new(&word, ASCII_ALPHABET);
-    let content = Content {
-        hint: hint.clone(),
-        gallows: game.gallows(),
-        guess_options: game.guess_options(),
-        word_display: display_known_letters(game.known_letters()),
-        message: Message::Start,
-        game_over: false,
-    };
-    let mut screen = Screen::new(io::stdout(), content)?;
-    screen.draw()?;
-    while let Some(guess) = screen.getchar()? {
-        let r = game.guess(guess);
-        let mut word_display = display_known_letters(game.known_letters());
-        let mut game_over = false;
-        let message = if let Some(fate) = game.fate() {
-            game_over = true;
-            match fate {
-                Fate::Won => Message::Won,
-                Fate::Lost => {
-                    for (&ch, cd) in std::iter::zip(game.word(), &mut word_display) {
-                        if *cd == CharDisplay::Blank {
-                            *cd = CharDisplay::Highlighted(ch);
-                        }
-                    }
-                    Message::Lost
+impl Command {
+    fn from_parser(mut parser: Parser) -> Result<Command, lexopt::Error> {
+        let mut word_source = WordSource::default();
+        while let Some(arg) = parser.next()? {
+            match arg {
+                Arg::Short('h') | Arg::Long("help") => return Ok(Command::Help),
+                Arg::Short('V') | Arg::Long("version") => return Ok(Command::Version),
+                Arg::Short('w') | Arg::Long("word") => {
+                    word_source = WordSource::Fixed(parser.value()?.string()?)
                 }
-                Fate::OutOfLetters => Message::OutOfLetters,
-            }
-        } else {
-            match r {
-                Response::GoodGuess { letters_revealed } => {
-                    let normguess = normalize_char(guess);
-                    for cd in &mut word_display {
-                        if *cd == CharDisplay::Plain(normguess) {
-                            *cd = CharDisplay::Highlighted(normguess);
-                        }
-                    }
-                    Message::GoodGuess {
-                        guess,
-                        letters_revealed,
-                    }
+                Arg::Short('f') | Arg::Long("words-file") => {
+                    word_source = WordSource::File(InputArg::from_arg(parser.value()?))
                 }
-                Response::BadGuess => Message::BadGuess { guess },
-                Response::AlreadyGuessed => Message::AlreadyGuessed { guess },
-                Response::InvalidGuess => Message::InvalidGuess { guess },
-                Response::GameOver => Message::InvalidGuess { guess },
+                _ => return Err(arg.unexpected()),
             }
-        };
-        let content = Content {
-            hint: hint.clone(),
-            gallows: game.gallows(),
-            guess_options: game.guess_options(),
-            word_display,
-            message,
-            game_over,
-        };
-        screen.update(content)?;
-        if game_over {
-            let _ = screen.getchar()?;
-            break;
         }
+        Ok(Command::Run(word_source))
     }
-    Ok(())
+
+    fn run(self) -> anyhow::Result<()> {
+        match self {
+            Command::Run(word_source) => {
+                let Word { word, hint } = word_source.fetch()?;
+                let mut game = Hangman::new(&word, ASCII_ALPHABET);
+                let content = Content {
+                    hint: hint.clone(),
+                    gallows: game.gallows(),
+                    guess_options: game.guess_options(),
+                    word_display: display_known_letters(game.known_letters()),
+                    message: Message::Start,
+                    game_over: false,
+                };
+                let mut screen = Screen::new(io::stdout(), content)?;
+                screen.draw()?;
+                while let Some(guess) = screen.getchar()? {
+                    let r = game.guess(guess);
+                    let mut word_display = display_known_letters(game.known_letters());
+                    let mut game_over = false;
+                    let message = if let Some(fate) = game.fate() {
+                        game_over = true;
+                        match fate {
+                            Fate::Won => Message::Won,
+                            Fate::Lost => {
+                                for (&ch, cd) in std::iter::zip(game.word(), &mut word_display) {
+                                    if *cd == CharDisplay::Blank {
+                                        *cd = CharDisplay::Highlighted(ch);
+                                    }
+                                }
+                                Message::Lost
+                            }
+                            Fate::OutOfLetters => Message::OutOfLetters,
+                        }
+                    } else {
+                        match r {
+                            Response::GoodGuess { letters_revealed } => {
+                                let normguess = normalize_char(guess);
+                                for cd in &mut word_display {
+                                    if *cd == CharDisplay::Plain(normguess) {
+                                        *cd = CharDisplay::Highlighted(normguess);
+                                    }
+                                }
+                                Message::GoodGuess {
+                                    guess,
+                                    letters_revealed,
+                                }
+                            }
+                            Response::BadGuess => Message::BadGuess { guess },
+                            Response::AlreadyGuessed => Message::AlreadyGuessed { guess },
+                            Response::InvalidGuess => Message::InvalidGuess { guess },
+                            Response::GameOver => Message::InvalidGuess { guess },
+                        }
+                    };
+                    let content = Content {
+                        hint: hint.clone(),
+                        gallows: game.gallows(),
+                        guess_options: game.guess_options(),
+                        word_display,
+                        message,
+                        game_over,
+                    };
+                    screen.update(content)?;
+                    if game_over {
+                        let _ = screen.getchar()?;
+                        break;
+                    }
+                }
+            }
+            Command::Help => {
+                println!("Usage: hangman [-w <word>|-f <path>]");
+                println!();
+                println!("Play Hangman in your terminal");
+                println!();
+                println!("Options:");
+                println!("  -w <WORD>, --word <WORD>");
+                println!(
+                    "                    Use <WORD> as the secret word.  Good for testing and"
+                );
+                println!("                    playing against others.");
+                println!();
+                println!("  -f <PATH>, --words-file <PATH>");
+                println!("                    Select a word at random from the file at <PATH>");
+                println!();
+                println!("  -h, --help        Display this help message and exit");
+                println!("  -V, --version     Show the program version and exit");
+            }
+            Command::Version => {
+                println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+            }
+        }
+        Ok(())
+    }
+}
+
+fn main() -> anyhow::Result<()> {
+    Command::from_parser(Parser::from_env())?.run()
 }
 
 fn display_known_letters(known: &[Option<char>]) -> Vec<CharDisplay> {
