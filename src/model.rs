@@ -156,3 +156,13 @@ impl Hangman {
 pub(crate) fn normalize_char(c: char) -> char {
     c.to_ascii_uppercase()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gallows_end() {
+        assert_eq!(Gallows::END, Gallows::iter().last().unwrap());
+    }
+}
