@@ -23,7 +23,7 @@ impl Command {
                 Arg::Short('h') | Arg::Long("help") => return Ok(Command::Help),
                 Arg::Short('V') | Arg::Long("version") => return Ok(Command::Version),
                 Arg::Short('w') | Arg::Long("word") => {
-                    word_source = WordSource::Fixed(parser.value()?.string()?)
+                    word_source = WordSource::Fixed(parser.value()?.parse()?)
                 }
                 Arg::Short('f') | Arg::Long("words-file") => {
                     word_source = WordSource::File(InputArg::from_arg(parser.value()?))
@@ -37,8 +37,8 @@ impl Command {
     fn run(self) -> anyhow::Result<()> {
         match self {
             Command::Run(word_source) => {
-                let Word { word, hint } = word_source.fetch()?;
-                let mut game = Hangman::new(&word, ASCII_ALPHABET);
+                let WordWithHint { word, hint } = word_source.fetch()?;
+                let mut game = Hangman::new(word.as_ref(), ASCII_ALPHABET);
                 let content = Content {
                     hint: hint.clone(),
                     gallows: game.gallows(),

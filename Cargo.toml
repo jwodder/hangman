@@ -19,6 +19,7 @@ patharg = "0.3.0"
 rand = "0.8.5"
 serde = { version = "1.0.192", features = ["derive"] }
 strum = { version = "0.25.0", features = ["derive"] }
+thiserror = "1.0.50"
 
 [dev-dependencies]
 strip-ansi-escapes = "0.2.0"
