@@ -42,7 +42,11 @@ impl Command {
                 let content = Content {
                     hint: hint.clone(),
                     gallows: game.gallows(),
-                    guess_options: game.guess_options(),
+                    guess_options: game
+                        .guessed()
+                        .iter()
+                        .map(|(&ch, &b)| (!b).then_some(ch))
+                        .collect(),
                     word_display: display_known_letters(game.known_letters()),
                     message: Message::Start,
                     game_over: false,
@@ -93,7 +97,11 @@ impl Command {
                     let content = Content {
                         hint: hint.clone(),
                         gallows: game.gallows(),
-                        guess_options: game.guess_options(),
+                        guess_options: game
+                            .guessed()
+                            .iter()
+                            .map(|(&ch, &b)| (!b).then_some(ch))
+                            .collect(),
                         word_display,
                         message,
                         game_over,

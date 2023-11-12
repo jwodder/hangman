@@ -1,64 +1,112 @@
 use crate::words::Word;
 use std::collections::BTreeMap;
-use strum::{EnumCount, EnumIter, IntoEnumIterator};
+use strum::{EnumIter, IntoEnumIterator};
 
+/// The 26 uppercase letters of the ASCII alphabet, for use as the `alphabet`
+/// argument to [`Hangman::new()`]
 pub(crate) static ASCII_ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-#[derive(Clone, Copy, Debug, EnumCount, EnumIter, Eq, Hash, Ord, PartialEq, PartialOrd)]
+/// The state of the hangman's gallows in a game of Hangman
+#[derive(Clone, Copy, Debug, EnumIter, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Gallows {
+    /// The initial state, when no incorrect guesses have yet been made
     Start,
+    /// The state when one incorrect guess has been made
     AddHead,
+    /// The state when two incorrect guesses have been made
     AddTorso,
+    /// The state when three incorrect guesses have been made
     AddLeftArm,
+    /// The state when four incorrect guesses have been made
     AddRightArm,
+    /// The state when five incorrect guesses have been made
     AddLeftLeg,
+    /// The state when six incorrect guesses (the maximum) have been made
     AddRightLeg,
 }
 
 impl Gallows {
+    /// Alias for the final `Gallows` state
     pub(crate) const END: Gallows = Gallows::AddRightLeg;
 }
 
+/// Outcome of a completed game of Hangman
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Fate {
+    /// The user won
     Won,
+    /// The user lost by making too many incorrect guesses
     Lost,
+    /// The user guessed all the characters in the alphabet without winning or
+    /// losing
     OutOfLetters,
 }
 
+/// Outcome of a guess in Hangman
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Response {
+    /// The guessed character was in the secret word and had not been
+    /// previously guessed
     GoodGuess {
+        /// The guessed character, converted to uppercase if ASCII
         guess: char,
+        /// The number of occurrences of the guess in the secret word
         letters_revealed: usize,
     },
+    /// The guessed character was not in the secret word
     BadGuess {
+        /// The guessed character, converted to uppercase if ASCII
         guess: char,
     },
+    /// The user guessed a character that had already been guessed
     AlreadyGuessed {
+        /// The guessed character, converted to uppercase if ASCII
         guess: char,
     },
-    // Guess was not in the allowed alphabet
+    /// The user guessed a character that was not in the game's alphabet
     InvalidGuess {
+        /// The guessed character, converted to uppercase if ASCII
         guess: char,
     },
-    // User guessed after game was over
+    /// [`Hangman::guess()`] was called after the game ended (i.e., when
+    /// [`Hangman::fate()`] is returning `Some`)
     GameOver,
 }
 
+/// A game of Hangman.
+///
+/// Text provided to a `Hangman` instance — be it the word or alphabet provided
+/// on construction or a character supplied as a guess — is normalized by
+/// converting lowercase ASCII letters to uppercase.  No other normalization is
+/// performed.
 #[derive(Clone, Debug)]
 pub(crate) struct Hangman {
-    // Mapping of allowed guesses to whether they've been guessed (true) or not
-    // (false)
+    /// Mapping from normalized characters in the alphabet to whether they've
+    /// been guessed (true) or not (false)
     letters: BTreeMap<char, bool>,
     gallows: Gallows,
     gallows_iter: GallowsIter,
     word: Vec<char>,
+    /// A representation of the characters in the word known by the user.
+    /// `known_letters` is the same length as `word`.  At each index `i`,
+    /// `known_letters[i]` is either `Some(word[i])` if the characters therein
+    /// is known to the user (either because they guessed it previously or
+    /// because the character is not in the game's alphabet and thus was
+    /// revealed from the start) and `None` otherwise.
     known_letters: Vec<Option<char>>,
     fate: Option<Fate>,
 }
 
 impl Hangman {
+    /// Create a game of Hangman in which the secret word is `word` and the
+    /// user must guess characters from `alphabet`.
+    ///
+    /// Characters in `word` and `alphabet` are normalized by converting
+    /// lowercase ASCII letters to uppercase.
+    ///
+    /// `word` need not be limited to the characters in `alphabet`; any
+    /// characters in `word` outside of `alphabet` will start out revealed to
+    /// the user without having to be guessed.
     pub(crate) fn new(word: Word, alphabet: &str) -> Hangman {
         let letters: BTreeMap<char, bool> = alphabet
             .chars()
@@ -81,6 +129,12 @@ impl Hangman {
         }
     }
 
+    /// Process a guess at a character in the secret word.
+    ///
+    /// If `guess` is ASCII, it is handled case-insensitively.
+    ///
+    /// If the game has ended (i.e., if [`Hangman::fate()`] is returning
+    /// `Some`), this method will return [`Response::GameOver`].
     pub(crate) fn guess(&mut self, guess: char) -> Response {
         if self.fate().is_some() {
             return Response::GameOver;
@@ -116,35 +170,31 @@ impl Hangman {
         }
     }
 
-    pub(crate) fn guess_options(&self) -> Vec<Option<char>> {
-        self.letters
-            .iter()
-            .map(|(&ch, &b)| (!b).then_some(ch))
-            .collect()
+    /// Returns a mapping from characters in the game's alphabet (with
+    /// lowercase ASCII letters converted to uppercase) to either `true` (if
+    /// the character has been guessed by the user) or `false` (if the user
+    /// hasn't guessed it yet)
+    pub(crate) fn guessed(&self) -> &BTreeMap<char, bool> {
+        &self.letters
     }
 
-    /*
-    pub(crate) fn mistakes_made(&self) -> usize {
-        self.gallows as usize
-    }
-
-    pub(crate) fn max_mistakes() -> usize {
-        Gallows::COUNT
-    }
-
-    pub(crate) fn mistakes_left(&self) -> usize {
-        Hangman::max_mistakes() - self.mistakes_made()
-    }
-    */
-
+    /// Returns the current state of the hangman's gallows
     pub(crate) fn gallows(&self) -> Gallows {
         self.gallows
     }
 
+    /// Returns the secret word as revealed to the user so far, with lowercase
+    /// ASCII letters converted to uppercase.  Each element of the slice is
+    /// either `Some(ch)` (if `ch` was previously guessed successfully by the
+    /// user or if `ch` is a character in the secret word that does not appear
+    /// in the alphabet and thus was revealed from the start) or `None` (if the
+    /// user has yet to guess the underlying character).
     pub(crate) fn known_letters(&self) -> &[Option<char>] {
         &self.known_letters
     }
 
+    /// Returns the secret word with lowercase ASCII letters converted to
+    /// uppercase
     pub(crate) fn word(&self) -> &[char] {
         &self.word
     }
@@ -161,6 +211,8 @@ impl Hangman {
         }
     }
 
+    /// If the game has ended, returns `Some(fate)`, where `fate` describes the
+    /// outcome.  Otherwise, returns `None`.
     pub(crate) fn fate(&self) -> Option<Fate> {
         self.fate
     }
