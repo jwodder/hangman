@@ -42,7 +42,7 @@ impl<W: Write> Screen<W> {
         })
     }
 
-    pub(crate) fn getchar(&mut self) -> io::Result<char> {
+    pub(crate) fn getchar(&mut self) -> io::Result<Option<char>> {
         fn extract_char(code: KeyCode, modifiers: KeyModifiers) -> Option<char> {
             let normal_modifiers = KeyModifiers::NONE | KeyModifiers::SHIFT;
             if normal_modifiers.contains(modifiers) {
@@ -56,19 +56,21 @@ impl<W: Write> Screen<W> {
         loop {
             match read()? {
                 Event::Key(KeyEvent {
+                    code: KeyCode::Esc, ..
+                }) => return Ok(None),
+                Event::Key(KeyEvent {
                     code,
                     modifiers,
                     kind: KeyEventKind::Press,
                     ..
                 }) => {
                     if let Some(ch) = extract_char(code, modifiers) {
-                        return Ok(ch);
+                        return Ok(Some(ch));
                     } else {
                         self.beep()?;
                     }
                 }
                 Event::Resize(columns, rows) => {
-                    // TODO: Debounce resize floods
                     self.columns = columns;
                     self.rows = rows;
                     self.draw()?;

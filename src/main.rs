@@ -21,8 +21,7 @@ fn main() -> io::Result<()> {
     };
     let mut screen = Screen::new(io::stdout(), content)?;
     screen.draw()?;
-    loop {
-        let guess = screen.getchar()?;
+    while let Some(guess) = screen.getchar()? {
         let r = game.guess(guess);
         let mut word_display = display_known_letters(game.known_letters());
         let message = if let Some(fate) = game.fate() {
