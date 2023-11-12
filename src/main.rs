@@ -84,6 +84,8 @@ impl Command {
                             Response::BadGuess => Message::BadGuess { guess },
                             Response::AlreadyGuessed => Message::AlreadyGuessed { guess },
                             Response::InvalidGuess => Message::InvalidGuess { guess },
+                            // This can't happen the way we're using the game,
+                            // but we should at least do something reasonable.
                             Response::GameOver => Message::InvalidGuess { guess },
                         }
                     };
@@ -103,19 +105,19 @@ impl Command {
                 }
             }
             Command::Help => {
-                println!("Usage: hangman [-w <word>|-f <path>]");
+                println!("Usage: hangman [-f <FILE>|-w <WORD>]");
                 println!();
                 println!("Play Hangman in your terminal");
                 println!();
                 println!("Options:");
+                println!("  -f <FILE>, --words-file <FILE>");
+                println!("                    Select a word at random from <FILE>");
+                println!();
                 println!("  -w <WORD>, --word <WORD>");
                 println!(
                     "                    Use <WORD> as the secret word.  Good for testing and"
                 );
                 println!("                    playing against others.");
-                println!();
-                println!("  -f <PATH>, --words-file <PATH>");
-                println!("                    Select a word at random from the file at <PATH>");
                 println!();
                 println!("  -h, --help        Display this help message and exit");
                 println!("  -V, --version     Show the program version and exit");

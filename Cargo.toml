@@ -8,6 +8,7 @@ authors = ["John Thorvald Wodder II <hangman@varonathe.org>"]
 repository = "https://github.com/jwodder/hangman"
 documentation = "https://github.com/jwodder/hangman"
 license = "MIT"
+exclude = ["/.*"]
 publish = false
 
 [dependencies]
