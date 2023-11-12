@@ -84,7 +84,7 @@ impl<W: Write> Screen<W> {
         Ok(())
     }
 
-    fn draw(&mut self) -> io::Result<()> {
+    pub(crate) fn draw(&mut self) -> io::Result<()> {
         let left_margin = match u16::try_from(Content::WIDTH) {
             Ok(width) => self.columns.saturating_sub(width) / 2,
             Err(_) => 0,

@@ -20,6 +20,7 @@ fn main() -> io::Result<()> {
         message: Message::Start,
     };
     let mut screen = Screen::new(io::stdout(), content)?;
+    screen.draw()?;
     loop {
         let guess = screen.getchar()?;
         let r = game.guess(guess);
