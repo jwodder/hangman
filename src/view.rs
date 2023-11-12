@@ -196,7 +196,7 @@ impl Content {
             }
             (Gallows::AddHead, true) => &[
                 "  ┌───┐ ",
-                "  │   \x1B[31mo\x1B[m ",
+                "  │   \x1B[1;31mo\x1B[m ",
                 "  │     ",
                 "  │     ",
                 "──┴──   ",
@@ -207,7 +207,7 @@ impl Content {
             (Gallows::AddTorso, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
-                "  │   \x1B[31m|\x1B[m ",
+                "  │   \x1B[1;31m|\x1B[m ",
                 "  │     ",
                 "──┴──   ",
             ],
@@ -217,7 +217,7 @@ impl Content {
             (Gallows::AddLeftArm, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
-                "  │  \x1B[31m/\x1B[m| ",
+                "  │  \x1B[1;31m/\x1B[m| ",
                 "  │     ",
                 "──┴──   ",
             ],
@@ -227,7 +227,7 @@ impl Content {
             (Gallows::AddRightArm, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
-                "  │  /|\x1B[31m\\\x1B[m",
+                "  │  /|\x1B[1;31m\\\x1B[m",
                 "  │     ",
                 "──┴──   ",
             ],
@@ -238,7 +238,7 @@ impl Content {
                 "  ┌───┐ ",
                 "  │   o ",
                 "  │  /|\\",
-                "  │  \x1B[31m/\x1B[m  ",
+                "  │  \x1B[1;31m/\x1B[m  ",
                 "──┴──   ",
             ],
             (Gallows::AddRightLeg, false) => {
@@ -248,7 +248,7 @@ impl Content {
                 "  ┌───┐ ",
                 "  │   o ",
                 "  │  /|\\",
-                "  │  / \x1B[31m\\\x1B[m",
+                "  │  / \x1B[1;31m\\\x1B[m",
                 "──┴──   ",
             ],
         }
