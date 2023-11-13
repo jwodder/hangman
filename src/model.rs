@@ -43,12 +43,15 @@ impl Gallows {
 }
 
 /// Outcome of a completed game of Hangman
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Fate {
     /// The user won
     Won,
     /// The user lost by making too many incorrect guesses
-    Lost,
+    Lost(
+        /// The secret word in its entirety, as a consolation prize
+        Vec<char>,
+    ),
 }
 
 /// Outcome of a guess in Hangman
@@ -198,17 +201,11 @@ impl Hangman {
         &self.known_letters
     }
 
-    /// Returns the secret word with lowercase ASCII letters converted to
-    /// uppercase
-    pub(crate) fn word(&self) -> &[char] {
-        &self.word
-    }
-
     fn determine_fate(&mut self) {
         self.fate = if self.known_letters.iter().all(Option::is_some) {
             Some(Fate::Won)
         } else if self.gallows == Gallows::END {
-            Some(Fate::Lost)
+            Some(Fate::Lost(self.word.clone()))
         } else {
             None
         }
@@ -217,7 +214,7 @@ impl Hangman {
     /// If the game has ended, returns `Some(fate)`, where `fate` describes the
     /// outcome.  Otherwise, returns `None`.
     pub(crate) fn fate(&self) -> Option<Fate> {
-        self.fate
+        self.fate.clone()
     }
 }
 

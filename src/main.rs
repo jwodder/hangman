@@ -83,8 +83,8 @@ impl Command {
                         game_over = true;
                         message = match fate {
                             Fate::Won => Message::Won,
-                            Fate::Lost => {
-                                for (&ch, cd) in std::iter::zip(game.word(), &mut word_display) {
+                            Fate::Lost(word) => {
+                                for (ch, cd) in std::iter::zip(word, &mut word_display) {
                                     if *cd == CharDisplay::Blank {
                                         *cd = CharDisplay::Highlighted(ch);
                                     }
