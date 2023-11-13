@@ -91,7 +91,7 @@ pub(crate) enum Response {
 /// on construction or a character supplied as a guess — is normalized by
 /// converting lowercase ASCII letters to uppercase.  No other normalization is
 /// performed.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Hangman {
     /// Mapping from normalized characters in the alphabet to whether they've
     /// been guessed (true) or not (false)
