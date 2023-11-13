@@ -292,19 +292,10 @@ impl fmt::Display for CharDisplay {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Message {
     Start,
-    GoodGuess {
-        guess: char,
-        letters_revealed: usize,
-    },
-    BadGuess {
-        guess: char,
-    },
-    AlreadyGuessed {
-        guess: char,
-    },
-    InvalidGuess {
-        guess: char,
-    },
+    GoodGuess { guess: char, count: usize },
+    BadGuess { guess: char },
+    AlreadyGuessed { guess: char },
+    InvalidGuess { guess: char },
     Won,
     Lost,
 }
@@ -313,15 +304,12 @@ impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Message::Start => write!(f, "Try to guess the secret word!"),
-            Message::GoodGuess {
-                guess,
-                letters_revealed,
-            } => {
+            Message::GoodGuess { guess, count } => {
                 write!(f, "Correct!  There ")?;
-                if *letters_revealed == 1 {
+                if *count == 1 {
                     write!(f, "is 1 {guess:?} ")?;
                 } else {
-                    write!(f, "are {letters_revealed} {guess:?}s ")?;
+                    write!(f, "are {count} {guess:?}s ")?;
                 }
                 write!(f, "in the word.")?;
                 Ok(())
@@ -536,7 +524,7 @@ mod tests {
                 ],
                 message: Message::GoodGuess {
                     guess: 'A',
-                    letters_revealed: 2,
+                    count: 2,
                 },
                 game_over: false,
             };

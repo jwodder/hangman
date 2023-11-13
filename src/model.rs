@@ -63,7 +63,7 @@ pub(crate) enum Response {
         /// The guessed character, converted to uppercase if ASCII
         guess: char,
         /// The number of occurrences of the guess in the secret word
-        letters_revealed: usize,
+        count: usize,
     },
     /// The guessed character was not in the secret word
     BadGuess {
@@ -151,20 +151,17 @@ impl Hangman {
         match self.letters.get_mut(&guess) {
             Some(true) => Response::AlreadyGuessed { guess },
             Some(b @ false) => {
-                let mut letters_revealed = 0;
+                let mut count = 0;
                 for (&wch, known) in self.word.iter().zip(self.known_letters.iter_mut()) {
                     if wch == guess {
                         debug_assert!(known.is_none());
-                        letters_revealed += 1;
+                        count += 1;
                         *known = Some(wch);
                     }
                 }
                 *b = true;
-                let r = if letters_revealed > 0 {
-                    Response::GoodGuess {
-                        guess,
-                        letters_revealed,
-                    }
+                let r = if count > 0 {
+                    Response::GoodGuess { guess, count }
                 } else {
                     if let Some(g) = self.gallows.succ() {
                         self.gallows = g;

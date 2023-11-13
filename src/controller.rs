@@ -37,19 +37,13 @@ impl Controller {
             let mut word_display = display_known_letters(self.game.known_letters());
             let mut game_over = false;
             let mut message = match r {
-                Response::GoodGuess {
-                    guess,
-                    letters_revealed,
-                } => {
+                Response::GoodGuess { guess, count } => {
                     for cd in &mut word_display {
                         if *cd == CharDisplay::Plain(guess) {
                             *cd = CharDisplay::Highlighted(guess);
                         }
                     }
-                    Message::GoodGuess {
-                        guess,
-                        letters_revealed,
-                    }
+                    Message::GoodGuess { guess, count }
                 }
                 Response::BadGuess { guess } => Message::BadGuess { guess },
                 Response::AlreadyGuessed { guess } => Message::AlreadyGuessed { guess },
