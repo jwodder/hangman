@@ -1,13 +1,12 @@
 use crate::words::Word;
 use std::collections::BTreeMap;
-use strum::{EnumIter, IntoEnumIterator};
 
 /// The 26 uppercase letters of the ASCII alphabet, for use as the `alphabet`
 /// argument to [`Hangman::new()`]
 pub(crate) static ASCII_ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /// The state of the hangman's gallows in a game of Hangman
-#[derive(Clone, Copy, Debug, EnumIter, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Gallows {
     /// The initial state, when no incorrect guesses have yet been made
     Start,
@@ -28,6 +27,19 @@ pub(crate) enum Gallows {
 impl Gallows {
     /// Alias for the final `Gallows` state
     pub(crate) const END: Gallows = Gallows::AddRightLeg;
+
+    /// Return the next gallows state, if any
+    pub(crate) fn succ(self) -> Option<Gallows> {
+        match self {
+            Gallows::Start => Some(Gallows::AddHead),
+            Gallows::AddHead => Some(Gallows::AddTorso),
+            Gallows::AddTorso => Some(Gallows::AddLeftArm),
+            Gallows::AddLeftArm => Some(Gallows::AddRightArm),
+            Gallows::AddRightArm => Some(Gallows::AddLeftLeg),
+            Gallows::AddLeftLeg => Some(Gallows::AddRightLeg),
+            Gallows::AddRightLeg => None,
+        }
+    }
 }
 
 /// Outcome of a completed game of Hangman
@@ -82,7 +94,6 @@ pub(crate) struct Hangman {
     /// been guessed (true) or not (false)
     letters: BTreeMap<char, bool>,
     gallows: Gallows,
-    gallows_iter: GallowsIter,
     word: Vec<char>,
     /// A representation of the characters in the word known by the user.
     /// `known_letters` is the same length as `word`.  At each index `i`,
@@ -114,12 +125,9 @@ impl Hangman {
             .iter()
             .map(|&c| (!letters.contains_key(&c)).then_some(c))
             .collect();
-        let mut gallows_iter = Gallows::iter();
-        let gallows = gallows_iter.next().expect("GallowsIter should be nonempty");
         Hangman {
             letters,
-            gallows,
-            gallows_iter,
+            gallows: Gallows::Start,
             word,
             known_letters,
             fate: None,
@@ -155,7 +163,7 @@ impl Hangman {
                         letters_revealed,
                     }
                 } else {
-                    if let Some(g) = self.gallows_iter.next() {
+                    if let Some(g) = self.gallows.succ() {
                         self.gallows = g;
                     }
                     Response::BadGuess { guess }
@@ -223,6 +231,7 @@ mod tests {
 
     #[test]
     fn test_gallows_end() {
-        assert_eq!(Gallows::END, Gallows::iter().last().unwrap());
+        let iter = std::iter::successors(Some(Gallows::Start), |&g| g.succ());
+        assert_eq!(Gallows::END, iter.last().unwrap());
     }
 }

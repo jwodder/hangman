@@ -329,12 +329,11 @@ impl fmt::Display for Message {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use strum::IntoEnumIterator;
     use unicode_width::UnicodeWidthStr;
 
     #[test]
     fn test_gallows_widths() {
-        for gallows in Gallows::iter() {
+        for gallows in std::iter::successors(Some(Gallows::Start), |&g| g.succ()) {
             for line in Content::draw_gallows(gallows, false) {
                 assert_eq!(UnicodeWidthStr::width(*line), Content::GALLOWS_WIDTH);
             }
