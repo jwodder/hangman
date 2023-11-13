@@ -91,7 +91,6 @@ impl Command {
                                 }
                                 Message::Lost
                             }
-                            Fate::OutOfLetters => Message::OutOfLetters,
                         }
                     }
                     let content = Content {

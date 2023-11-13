@@ -37,9 +37,6 @@ pub(crate) enum Fate {
     Won,
     /// The user lost by making too many incorrect guesses
     Lost,
-    /// The user guessed all the characters in the alphabet without winning or
-    /// losing
-    OutOfLetters,
 }
 
 /// Outcome of a guess in Hangman
@@ -204,8 +201,6 @@ impl Hangman {
             Some(Fate::Won)
         } else if self.gallows == Gallows::END {
             Some(Fate::Lost)
-        } else if self.letters.values().all(|&b| b) {
-            Some(Fate::OutOfLetters)
         } else {
             None
         }

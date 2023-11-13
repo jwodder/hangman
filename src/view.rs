@@ -292,7 +292,6 @@ pub enum Message {
     },
     Won,
     Lost,
-    OutOfLetters,
 }
 
 impl fmt::Display for Message {
@@ -323,7 +322,6 @@ impl fmt::Display for Message {
             }
             Message::Won => write!(f, "You win!"),
             Message::Lost => write!(f, "Oh dear, you are dead!"),
-            Message::OutOfLetters => write!(f, "You've exhausted the alphabet!"),
         }
     }
 }
