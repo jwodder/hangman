@@ -31,36 +31,39 @@ impl Controller {
             let r = self.game.guess(guess);
             let mut word_display = self.word_display();
             let mut game_over = false;
-            let mut message = match r {
-                Response::GoodGuess { guess, count } => {
+            let message = match r {
+                Response::GoodGuess { guess, count, won } => {
                     for cd in &mut word_display {
                         if *cd == CharDisplay::Plain(guess) {
                             *cd = CharDisplay::Highlighted(guess);
                         }
                     }
-                    Message::GoodGuess { guess, count }
+                    if won {
+                        game_over = true;
+                        Message::Won
+                    } else {
+                        Message::GoodGuess { guess, count }
+                    }
                 }
-                Response::BadGuess { guess } => Message::BadGuess { guess },
+                Response::BadGuess {
+                    lost: Some(Lost { word }),
+                    ..
+                } => {
+                    game_over = true;
+                    for (ch, cd) in std::iter::zip(word, &mut word_display) {
+                        if *cd == CharDisplay::Blank {
+                            *cd = CharDisplay::Highlighted(ch);
+                        }
+                    }
+                    Message::Lost
+                }
+                Response::BadGuess { guess, lost: None } => Message::BadGuess { guess },
                 Response::AlreadyGuessed { guess } => Message::AlreadyGuessed { guess },
                 Response::InvalidGuess { guess } => Message::InvalidGuess { guess },
                 // This can't happen the way we're using the game, but we
                 // should at least do something reasonable.
                 Response::GameOver => Message::InvalidGuess { guess },
             };
-            if let Some(fate) = self.game.fate() {
-                game_over = true;
-                message = match fate {
-                    Fate::Won => Message::Won,
-                    Fate::Lost(word) => {
-                        for (ch, cd) in std::iter::zip(word, &mut word_display) {
-                            if *cd == CharDisplay::Blank {
-                                *cd = CharDisplay::Highlighted(ch);
-                            }
-                        }
-                        Message::Lost
-                    }
-                }
-            }
             let content = Content {
                 hint: self.hint.clone(),
                 gallows: self.game.gallows(),

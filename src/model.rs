@@ -43,19 +43,16 @@ impl Gallows {
 }
 
 /// Outcome of a completed game of Hangman
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum Fate {
     /// The user won
     Won,
     /// The user lost by making too many incorrect guesses
-    Lost(
-        /// The secret word in its entirety, as a consolation prize
-        Vec<char>,
-    ),
+    Lost(Lost),
 }
 
 /// Outcome of a guess in Hangman
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum Response {
     /// The guessed character was in the secret word and had not been
     /// previously guessed
@@ -64,11 +61,15 @@ pub(crate) enum Response {
         guess: char,
         /// The number of occurrences of the guess in the secret word
         count: usize,
+        /// True iff the user won the game with this guess
+        won: bool,
     },
     /// The guessed character was not in the secret word
     BadGuess {
         /// The guessed character, converted to uppercase if ASCII
         guess: char,
+        /// `Some` iff the user lost the game with this guess
+        lost: Option<Lost>,
     },
     /// The user guessed a character that had already been guessed
     AlreadyGuessed {
@@ -83,6 +84,13 @@ pub(crate) enum Response {
     /// [`Hangman::guess()`] was called after the game ended (i.e., when
     /// [`Hangman::fate()`] is returning `Some`)
     GameOver,
+}
+
+/// Details on a game that the user lost
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct Lost {
+    /// The secret word in its entirety, as a consolation prize
+    pub(crate) word: Vec<char>,
 }
 
 /// A game of Hangman.
@@ -160,16 +168,29 @@ impl Hangman {
                     }
                 }
                 *b = true;
-                let r = if count > 0 {
-                    Response::GoodGuess { guess, count }
+                if count > 0 {
+                    let won = if self.known_letters.iter().all(Option::is_some) {
+                        self.fate = Some(Fate::Won);
+                        true
+                    } else {
+                        false
+                    };
+                    Response::GoodGuess { guess, count, won }
                 } else {
                     if let Some(g) = self.gallows.succ() {
                         self.gallows = g;
                     }
-                    Response::BadGuess { guess }
-                };
-                self.determine_fate();
-                r
+                    let lost = if self.gallows == Gallows::END {
+                        let about = Lost {
+                            word: self.word.clone(),
+                        };
+                        self.fate = Some(Fate::Lost(about.clone()));
+                        Some(about)
+                    } else {
+                        None
+                    };
+                    Response::BadGuess { guess, lost }
+                }
             }
             None => Response::InvalidGuess { guess },
         }
@@ -196,16 +217,6 @@ impl Hangman {
     /// user has yet to guess the underlying character).
     pub(crate) fn known_letters(&self) -> &[Option<char>] {
         &self.known_letters
-    }
-
-    fn determine_fate(&mut self) {
-        self.fate = if self.known_letters.iter().all(Option::is_some) {
-            Some(Fate::Won)
-        } else if self.gallows == Gallows::END {
-            Some(Fate::Lost(self.word.clone()))
-        } else {
-            None
-        }
     }
 
     /// If the game has ended, returns `Some(fate)`, where `fate` describes the
