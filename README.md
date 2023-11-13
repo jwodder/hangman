@@ -8,6 +8,8 @@ This is a Rust program for playing a game of [Hangman][] in your terminal.
 
 [Hangman]: https://en.wikipedia.org/wiki/Hangman_(game)
 
+![Recording of a Hangman game](hangman.gif)
+
 Usage
 =====
 
