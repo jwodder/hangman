@@ -12,6 +12,7 @@ use crossterm::{
 };
 use std::fmt::{self, Write as _};
 use std::io::{self, Write};
+use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Screen<W: Write> {
@@ -22,17 +23,19 @@ pub(crate) struct Screen<W: Write> {
 }
 
 impl<W: Write> Screen<W> {
-    pub(crate) fn new(mut inner: W, content: Content) -> io::Result<Screen<W>> {
-        let (columns, rows) = size()?;
-        inner.execute(EnterAlternateScreen)?;
+    pub(crate) fn new(mut inner: W, content: Content) -> Result<Screen<W>, ScreenError> {
+        let (columns, rows) = size().map_err(ScreenError::Init)?;
+        inner
+            .execute(EnterAlternateScreen)
+            .map_err(ScreenError::Init)?;
         if let Err(e) = enable_raw_mode() {
             let _ = inner.execute(LeaveAlternateScreen);
-            return Err(e);
+            return Err(ScreenError::Init(e));
         }
         if let Err(e) = inner.execute(Hide) {
             let _ = disable_raw_mode();
             let _ = inner.execute(LeaveAlternateScreen);
-            return Err(e);
+            return Err(ScreenError::Init(e));
         }
         Ok(Screen {
             inner,
@@ -42,10 +45,10 @@ impl<W: Write> Screen<W> {
         })
     }
 
-    pub(crate) fn read_guess(&mut self) -> io::Result<Option<char>> {
+    pub(crate) fn read_guess(&mut self) -> Result<Option<char>, ScreenError> {
         let normal_modifiers = KeyModifiers::NONE | KeyModifiers::SHIFT;
         loop {
-            match read()? {
+            match read().map_err(ScreenError::Read)? {
                 Event::Key(KeyEvent {
                     code: KeyCode::Esc, ..
                 }) => return Ok(None),
@@ -72,17 +75,17 @@ impl<W: Write> Screen<W> {
         }
     }
 
-    pub(crate) fn pause(&mut self) -> io::Result<()> {
+    pub(crate) fn pause(&mut self) -> Result<(), ScreenError> {
         self.read_guess().map(|_| ())
     }
 
-    pub(crate) fn update(&mut self, content: Content) -> io::Result<()> {
+    pub(crate) fn update(&mut self, content: Content) -> Result<(), ScreenError> {
         self.lines = content.render();
         self.draw()?;
         Ok(())
     }
 
-    pub(crate) fn draw(&mut self) -> io::Result<()> {
+    pub(crate) fn draw(&mut self) -> Result<(), ScreenError> {
         let left_margin = match u16::try_from(Content::WIDTH) {
             Ok(width) => self.columns.saturating_sub(width) / 2,
             Err(_) => 0,
@@ -91,16 +94,18 @@ impl<W: Write> Screen<W> {
             Ok(length) => self.rows.saturating_sub(length) / 2,
             Err(_) => 0,
         };
-        queue!(self.inner, Clear(ClearType::All))?;
+        queue!(self.inner, Clear(ClearType::All)).map_err(ScreenError::Write)?;
         for (y, ln) in std::iter::zip(top_margin.., &self.lines) {
-            queue!(self.inner, MoveTo(left_margin, y), Print(ln))?;
+            queue!(self.inner, MoveTo(left_margin, y), Print(ln)).map_err(ScreenError::Write)?;
         }
-        self.inner.flush()?;
+        self.inner.flush().map_err(ScreenError::Write)?;
         Ok(())
     }
 
-    fn beep(&mut self) -> io::Result<()> {
-        self.inner.execute(Print("\x07"))?;
+    fn beep(&mut self) -> Result<(), ScreenError> {
+        self.inner
+            .execute(Print("\x07"))
+            .map_err(ScreenError::Write)?;
         Ok(())
     }
 }
@@ -111,6 +116,16 @@ impl<W: Write> Drop for Screen<W> {
         let _ = disable_raw_mode();
         let _ = self.inner.execute(LeaveAlternateScreen);
     }
+}
+
+#[derive(Debug, Error)]
+pub(crate) enum ScreenError {
+    #[error("failed to initialize terminal display")]
+    Init(#[source] io::Error),
+    #[error("failed to read from terminal")]
+    Read(#[source] io::Error),
+    #[error("failed to write to terminal")]
+    Write(#[source] io::Error),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
