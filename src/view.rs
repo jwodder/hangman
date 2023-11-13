@@ -202,15 +202,26 @@ impl Content {
         lines
     }
 
+    #[rustfmt::skip]
     fn draw_gallows(
         gallows: Gallows,
         highlight: bool,
     ) -> &'static [&'static str; Content::GALLOWS_HEIGHT] {
         match (gallows, highlight) {
-            (Gallows::Start, _) => &["  ┌───┐ ", "  │     ", "  │     ", "  │     ", "──┴──   "],
-            (Gallows::AddHead, false) => {
-                &["  ┌───┐ ", "  │   o ", "  │     ", "  │     ", "──┴──   "]
-            }
+            (Gallows::Start, _) => &[
+                "  ┌───┐ ",
+                "  │     ",
+                "  │     ",
+                "  │     ",
+                "──┴──   "
+            ],
+            (Gallows::AddHead, false) => &[
+                "  ┌───┐ ",
+                "  │   o ",
+                "  │     ",
+                "  │     ",
+                "──┴──   "
+            ],
             (Gallows::AddHead, true) => &[
                 "  ┌───┐ ",
                 "  │   \x1B[1;31mo\x1B[m ",
@@ -218,9 +229,13 @@ impl Content {
                 "  │     ",
                 "──┴──   ",
             ],
-            (Gallows::AddTorso, false) => {
-                &["  ┌───┐ ", "  │   o ", "  │   | ", "  │     ", "──┴──   "]
-            }
+            (Gallows::AddTorso, false) => &[
+                "  ┌───┐ ",
+                "  │   o ",
+                "  │   | ",
+                "  │     ",
+                "──┴──   ",
+            ],
             (Gallows::AddTorso, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
@@ -228,9 +243,13 @@ impl Content {
                 "  │     ",
                 "──┴──   ",
             ],
-            (Gallows::AddLeftArm, false) => {
-                &["  ┌───┐ ", "  │   o ", "  │  /| ", "  │     ", "──┴──   "]
-            }
+            (Gallows::AddLeftArm, false) => &[
+                "  ┌───┐ ",
+                "  │   o ",
+                "  │  /| ",
+                "  │     ",
+                "──┴──   ",
+            ],
             (Gallows::AddLeftArm, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
@@ -238,9 +257,13 @@ impl Content {
                 "  │     ",
                 "──┴──   ",
             ],
-            (Gallows::AddRightArm, false) => {
-                &["  ┌───┐ ", "  │   o ", "  │  /|\\", "  │     ", "──┴──   "]
-            }
+            (Gallows::AddRightArm, false) => &[
+                "  ┌───┐ ",
+                "  │   o ",
+                "  │  /|\\",
+                "  │     ",
+                "──┴──   ",
+            ],
             (Gallows::AddRightArm, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
@@ -248,9 +271,13 @@ impl Content {
                 "  │     ",
                 "──┴──   ",
             ],
-            (Gallows::AddLeftLeg, false) => {
-                &["  ┌───┐ ", "  │   o ", "  │  /|\\", "  │  /  ", "──┴──   "]
-            }
+            (Gallows::AddLeftLeg, false) => &[
+                "  ┌───┐ ",
+                "  │   o ",
+                "  │  /|\\",
+                "  │  /  ",
+                "──┴──   ",
+            ],
             (Gallows::AddLeftLeg, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
@@ -258,9 +285,13 @@ impl Content {
                 "  │  \x1B[1;31m/\x1B[m  ",
                 "──┴──   ",
             ],
-            (Gallows::AddRightLeg, false) => {
-                &["  ┌───┐ ", "  │   o ", "  │  /|\\", "  │  / \\", "──┴──   "]
-            }
+            (Gallows::AddRightLeg, false) => &[
+                "  ┌───┐ ",
+                "  │   o ",
+                "  │  /|\\",
+                "  │  / \\",
+                "──┴──   ",
+            ],
             (Gallows::AddRightLeg, true) => &[
                 "  ┌───┐ ",
                 "  │   o ",
