@@ -94,11 +94,16 @@ impl<W: Write> Screen<W> {
             Ok(length) => self.rows.saturating_sub(length) / 2,
             Err(_) => 0,
         };
-        queue!(self.inner, Clear(ClearType::All)).map_err(ScreenError::Write)?;
+        self.write(left_margin, top_margin)
+            .map_err(ScreenError::Write)
+    }
+
+    fn write(&mut self, left_margin: u16, top_margin: u16) -> io::Result<()> {
+        queue!(self.inner, Clear(ClearType::All))?;
         for (y, ln) in std::iter::zip(top_margin.., &self.lines) {
-            queue!(self.inner, MoveTo(left_margin, y), Print(ln)).map_err(ScreenError::Write)?;
+            queue!(self.inner, MoveTo(left_margin, y), Print(ln))?;
         }
-        self.inner.flush().map_err(ScreenError::Write)?;
+        self.inner.flush()?;
         Ok(())
     }
 
