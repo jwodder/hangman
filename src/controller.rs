@@ -23,14 +23,12 @@ impl Controller {
             guess_options: self.guess_options(),
             word_display: self.word_display(),
             message: Message::Start,
-            game_over: false,
         };
         let mut screen = Screen::new(io::stdout(), content)?;
         screen.draw()?;
         while let Some(guess) = screen.read_guess()? {
             let r = self.game.guess(guess);
             let mut word_display = self.word_display();
-            let mut game_over = false;
             let message = match r {
                 Response::GoodGuess { guess, count, won } => {
                     for cd in &mut word_display {
@@ -39,7 +37,6 @@ impl Controller {
                         }
                     }
                     if won {
-                        game_over = true;
                         Message::Won
                     } else {
                         Message::GoodGuess { guess, count }
@@ -49,7 +46,6 @@ impl Controller {
                     lost: Some(Lost { word }),
                     ..
                 } => {
-                    game_over = true;
                     for (ch, cd) in std::iter::zip(word, &mut word_display) {
                         if *cd == CharDisplay::Blank {
                             *cd = CharDisplay::Highlighted(ch);
@@ -70,10 +66,9 @@ impl Controller {
                 guess_options: self.guess_options(),
                 word_display,
                 message,
-                game_over,
             };
             screen.update(content)?;
-            if game_over {
+            if self.game.fate().is_some() {
                 screen.pause()?;
                 break;
             }

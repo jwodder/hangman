@@ -135,7 +135,6 @@ pub(crate) struct Content {
     pub(crate) guess_options: Vec<Option<char>>,
     pub(crate) word_display: Vec<CharDisplay>,
     pub(crate) message: Message,
-    pub(crate) game_over: bool,
 }
 
 impl Content {
@@ -154,10 +153,7 @@ impl Content {
             lines.push(String::new());
         }
         lines.push(String::new());
-        for row in Content::draw_gallows(
-            self.gallows,
-            matches!(self.message, Message::BadGuess { .. } | Message::Lost),
-        ) {
+        for row in Content::draw_gallows(self.gallows, self.message.gallows_advanced()) {
             lines.push(format!("{}{:gutter$}", row, "", gutter = Content::GUTTER));
         }
         for (i, optchunk) in self
@@ -194,7 +190,7 @@ impl Content {
         lines.push(String::new());
         lines.push(self.message.to_string());
         lines.push(String::new());
-        if self.game_over {
+        if self.message.is_game_over() {
             lines.push(String::from("Press the Any Key to exit."));
         } else {
             lines.push(String::new());
@@ -331,6 +327,16 @@ pub enum Message {
     Lost,
 }
 
+impl Message {
+    fn is_game_over(&self) -> bool {
+        matches!(self, Message::Won | Message::Lost)
+    }
+
+    fn gallows_advanced(&self) -> bool {
+        matches!(self, Message::BadGuess { .. } | Message::Lost)
+    }
+}
+
 impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -424,7 +430,6 @@ mod tests {
                     CharDisplay::Blank,
                 ],
                 message: Message::Start,
-                game_over: false,
             };
             let lines = content.render();
             assert_eq!(
@@ -489,7 +494,6 @@ mod tests {
                     CharDisplay::Blank,
                 ],
                 message: Message::Start,
-                game_over: false,
             };
             let lines = content.render();
             assert_eq!(
@@ -557,7 +561,6 @@ mod tests {
                     guess: 'A',
                     count: 2,
                 },
-                game_over: false,
             };
             let lines = content.render();
             assert_eq!(
@@ -622,7 +625,6 @@ mod tests {
                     CharDisplay::Blank,
                 ],
                 message: Message::BadGuess { guess: 'E' },
-                game_over: false,
             };
             let lines = content.render();
             assert_eq!(
@@ -687,7 +689,6 @@ mod tests {
                     CharDisplay::Plain('S'),
                 ],
                 message: Message::Won,
-                game_over: true,
             };
             let lines = content.render();
             assert_eq!(
@@ -752,7 +753,6 @@ mod tests {
                     CharDisplay::Highlighted('S'),
                 ],
                 message: Message::Lost,
-                game_over: true,
             };
             let lines = content.render();
             assert_eq!(
