@@ -20,12 +20,7 @@ impl Controller {
         let content = Content {
             hint: self.hint.clone(),
             gallows: self.game.gallows(),
-            guess_options: self
-                .game
-                .guessed()
-                .iter()
-                .map(|(&ch, &b)| (!b).then_some(ch))
-                .collect(),
+            guess_options: self.guess_options(),
             word_display: display_known_letters(self.game.known_letters()),
             message: Message::Start,
             game_over: false,
@@ -69,12 +64,7 @@ impl Controller {
             let content = Content {
                 hint: self.hint.clone(),
                 gallows: self.game.gallows(),
-                guess_options: self
-                    .game
-                    .guessed()
-                    .iter()
-                    .map(|(&ch, &b)| (!b).then_some(ch))
-                    .collect(),
+                guess_options: self.guess_options(),
                 word_display,
                 message,
                 game_over,
@@ -86,6 +76,14 @@ impl Controller {
             }
         }
         Ok(())
+    }
+
+    fn guess_options(&self) -> Vec<Option<char>> {
+        self.game
+            .guessed()
+            .iter()
+            .map(|(&ch, &b)| (!b).then_some(ch))
+            .collect()
     }
 }
 
