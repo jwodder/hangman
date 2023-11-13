@@ -21,7 +21,7 @@ impl Controller {
             hint: self.hint.clone(),
             gallows: self.game.gallows(),
             guess_options: self.guess_options(),
-            word_display: display_known_letters(self.game.known_letters()),
+            word_display: self.word_display(),
             message: Message::Start,
             game_over: false,
         };
@@ -29,7 +29,7 @@ impl Controller {
         screen.draw()?;
         while let Some(guess) = screen.read_guess()? {
             let r = self.game.guess(guess);
-            let mut word_display = display_known_letters(self.game.known_letters());
+            let mut word_display = self.word_display();
             let mut game_over = false;
             let mut message = match r {
                 Response::GoodGuess { guess, count } => {
@@ -85,14 +85,15 @@ impl Controller {
             .map(|(&ch, &b)| (!b).then_some(ch))
             .collect()
     }
-}
 
-fn display_known_letters(known: &[Option<char>]) -> Vec<CharDisplay> {
-    known
-        .iter()
-        .map(|&opt| match opt {
-            Some(ch) => CharDisplay::Plain(ch),
-            None => CharDisplay::Blank,
-        })
-        .collect()
+    fn word_display(&self) -> Vec<CharDisplay> {
+        self.game
+            .known_letters()
+            .iter()
+            .map(|&opt| match opt {
+                Some(ch) => CharDisplay::Plain(ch),
+                None => CharDisplay::Blank,
+            })
+            .collect()
+    }
 }
