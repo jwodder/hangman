@@ -1,5 +1,6 @@
 use crate::words::Word;
 use std::collections::BTreeMap;
+use thiserror::Error;
 
 /// The 26 uppercase letters of the ASCII alphabet, for use as the `alphabet`
 /// argument to [`Hangman::new()`]
@@ -126,23 +127,26 @@ impl Hangman {
     /// `word` need not be limited to the characters in `alphabet`; any
     /// characters in `word` outside of `alphabet` will start out revealed to
     /// the user without having to be guessed.
-    pub(crate) fn new(word: Word, alphabet: &str) -> Hangman {
+    pub(crate) fn new(word: Word, alphabet: &str) -> Result<Hangman, HangmanError> {
         let letters: BTreeMap<char, bool> = alphabet
             .chars()
             .map(|c| (normalize_char(c), false))
             .collect();
         let word: Vec<char> = word.as_ref().chars().map(normalize_char).collect();
-        let known_letters = word
+        let known_letters: Vec<_> = word
             .iter()
             .map(|&c| (!letters.contains_key(&c)).then_some(c))
             .collect();
-        Hangman {
+        if known_letters.iter().all(Option::is_some) {
+            return Err(HangmanError::NoAlphabet);
+        }
+        Ok(Hangman {
             letters,
             gallows: Gallows::Start,
             word,
             known_letters,
             fate: None,
-        }
+        })
     }
 
     /// Process a guess at a character in the secret word.
@@ -224,6 +228,12 @@ impl Hangman {
     pub(crate) fn fate(&self) -> Option<Fate> {
         self.fate.clone()
     }
+}
+
+#[derive(Copy, Clone, Debug, Eq, Error, PartialEq)]
+pub(crate) enum HangmanError {
+    #[error("secret word must contain at least one letter from the alphabet")]
+    NoAlphabet,
 }
 
 fn normalize_char(c: char) -> char {

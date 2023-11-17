@@ -35,7 +35,7 @@ impl Command {
 
     fn run(self) -> anyhow::Result<()> {
         match self {
-            Command::Run(word_source) => Controller::new(word_source.fetch()?).run()?,
+            Command::Run(word_source) => Controller::new(word_source.fetch()?)?.run()?,
             Command::Help => {
                 println!("Usage: hangman [-f <FILE>|-w <WORD>]");
                 println!();

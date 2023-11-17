@@ -10,10 +10,10 @@ pub(crate) struct Controller {
 }
 
 impl Controller {
-    pub(crate) fn new(secret: WordWithHint) -> Controller {
+    pub(crate) fn new(secret: WordWithHint) -> Result<Controller, HangmanError> {
         let WordWithHint { word, hint } = secret;
-        let game = Hangman::new(word, ASCII_ALPHABET);
-        Controller { game, hint }
+        let game = Hangman::new(word, ASCII_ALPHABET)?;
+        Ok(Controller { game, hint })
     }
 
     pub(crate) fn run(mut self) -> anyhow::Result<()> {
