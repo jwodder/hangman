@@ -43,10 +43,10 @@ impl<'de> Deserialize<'de> for Word {
     {
         struct WordVisitor;
 
-        impl<'de> Visitor<'de> for WordVisitor {
+        impl Visitor<'_> for WordVisitor {
             type Value = Word;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("a string that is neither empty nor all-whitespace")
             }
 

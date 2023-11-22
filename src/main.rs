@@ -22,10 +22,10 @@ impl Command {
                 Arg::Short('h') | Arg::Long("help") => return Ok(Command::Help),
                 Arg::Short('V') | Arg::Long("version") => return Ok(Command::Version),
                 Arg::Short('w') | Arg::Long("word") => {
-                    word_source = WordSource::Fixed(parser.value()?.parse()?)
+                    word_source = WordSource::Fixed(parser.value()?.parse()?);
                 }
                 Arg::Short('f') | Arg::Long("words-file") => {
-                    word_source = WordSource::File(InputArg::from_arg(parser.value()?))
+                    word_source = WordSource::File(InputArg::from_arg(parser.value()?));
                 }
                 _ => return Err(arg.unexpected()),
             }

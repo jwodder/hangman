@@ -166,7 +166,10 @@ impl Hangman {
                 let mut count = 0;
                 for (&wch, known) in self.word.iter().zip(self.known_letters.iter_mut()) {
                     if wch == guess {
-                        debug_assert!(known.is_none());
+                        debug_assert!(
+                            known.is_none(),
+                            "Newly-guessed letter should not have already been revealed"
+                        );
                         count += 1;
                         *known = Some(wch);
                     }
@@ -184,15 +187,13 @@ impl Hangman {
                     if let Some(g) = self.gallows.succ() {
                         self.gallows = g;
                     }
-                    let lost = if self.gallows == Gallows::END {
+                    let lost = (self.gallows == Gallows::END).then(|| {
                         let about = Lost {
                             word: self.word.clone(),
                         };
                         self.fate = Some(Fate::Lost(about.clone()));
-                        Some(about)
-                    } else {
-                        None
-                    };
+                        about
+                    });
                     Response::BadGuess { guess, lost }
                 }
             }

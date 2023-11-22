@@ -166,12 +166,13 @@ impl Content {
             .chunks(Content::LETTER_COLUMNS)
             .enumerate()
         {
-            let ln = match lines.get_mut(i + 2) {
-                Some(ln) => ln,
-                None => {
-                    lines.push(" ".repeat(Content::GALLOWS_WIDTH + Content::GUTTER));
-                    lines.last_mut().unwrap()
-                }
+            let ln = if let Some(ln) = lines.get_mut(i + 2) {
+                ln
+            } else {
+                lines.push(" ".repeat(Content::GALLOWS_WIDTH + Content::GUTTER));
+                lines
+                    .last_mut()
+                    .expect("lines should not be empty after pushing")
             };
             let mut first = true;
             for opt in optchunk {
@@ -305,14 +306,14 @@ impl Content {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CharDisplay {
+pub(crate) enum CharDisplay {
     Plain(char),
     Highlighted(char),
     Blank,
 }
 
 impl fmt::Display for CharDisplay {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CharDisplay::Plain(ch) => write!(f, "{ch}"),
             CharDisplay::Highlighted(ch) => write!(f, "\x1B[1m{ch}\x1B[m"),
@@ -322,7 +323,7 @@ impl fmt::Display for CharDisplay {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Message {
+pub(crate) enum Message {
     Start,
     GoodGuess { guess: char, count: usize },
     BadGuess { guess: char },
@@ -343,7 +344,7 @@ impl Message {
 }
 
 impl fmt::Display for Message {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Message::Start => write!(f, "Try to guess the secret word!"),
             Message::GoodGuess { guess, count } => {
