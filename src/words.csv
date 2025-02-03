@@ -1,163 +1,310 @@
+arm,Anatomy
+bladder,Anatomy
+bone,Anatomy
+brain,Anatomy
+calf,Anatomy
+coccyx,Anatomy
+ear,Anatomy
+elbow,Anatomy
+eye,Anatomy
+face,Anatomy
+foot,Anatomy
+groin,Anatomy
+hand,Anatomy
+heart,Anatomy
+humerus,Anatomy
+intestines,Anatomy
+kidney,Anatomy
+knee,Anatomy
+leg,Anatomy
+lip,Anatomy
+liver,Anatomy
+lungs,Anatomy
+mouth,Anatomy
+navel,Anatomy
+neck,Anatomy
+nerves,Anatomy
+nose,Anatomy
+ribcage,Anatomy
+shin,Anatomy
+skull,Anatomy
+spine,Anatomy
+spleen,Anatomy
+stomach,Anatomy
+thigh,Anatomy
+throat,Anatomy
+tongue,Anatomy
+tonsils,Anatomy
+uvula,Anatomy
+vein,Anatomy
+womb,Anatomy
 aardvark,Animal
-agate,Gem
-alexandrite,Gem
-almond,Fruits & Vegetables
-amethyst,Gem
 anteater,Animal
 ape,Animal
-apple,Fruits & Vegetables
-apricot,Fruits & Vegetables
-aquamarine,Gem
-artichoke,Fruits & Vegetables
-avocado,Fruits & Vegetables
 badger,Animal
-banana,Fruits & Vegetables
 bat,Animal
 bear,Animal
 beaver,Animal
-blackberry,Fruits & Vegetables
-blueberry,Fruits & Vegetables
-book,School
-breadfruit,Fruits & Vegetables
-broccoli,Fruits & Vegetables
-bug,Animal
-cabbage,Fruits & Vegetables
-calculator,School
-cantaloupe,Fruits & Vegetables
-carrot,Fruits & Vegetables
-cashew,Fruits & Vegetables
 cat,Animal
-cauliflower,Fruits & Vegetables
-cherry,Fruits & Vegetables
 chicken,Animal
-cilantro,Fruits & Vegetables
 clam,Animal
-coconut,Fruits & Vegetables
-computer,School
-corn,Fruits & Vegetables
 cow,Animal
 crab,Animal
-crabapple,Fruits & Vegetables
-cranberry,Fruits & Vegetables
 crow,Animal
-cucumber,Fruits & Vegetables
-currant,Fruits & Vegetables
-date,Fruits & Vegetables
 deer,Animal
-desk,School
-diamond,Gem
 dog,Animal
 donkey,Animal
 dove,Animal
 duck,Animal
-durian,Fruits & Vegetables
-elderberry,Fruits & Vegetables
 elephant,Animal
-emerald,Gem
-essay,School
 ferret,Animal
 firefly,Animal
 fish,Animal
 fox,Animal
-garlic,Fruits & Vegetables
-garnet,Gem
 gnat,Animal
 goat,Animal
 goose,Animal
-grape,Fruits & Vegetables
-grapefruit,Fruits & Vegetables
-guava,Fruits & Vegetables
 hamster,Animal
-homework,School
-honeydew,Fruits & Vegetables
 horse,Animal
-huckleberry,Fruits & Vegetables
 human,Animal
-jasper,Gem
+insect,Animal
 jellyfish,Animal
-jujube,Fruits & Vegetables
-juneberry,Fruits & Vegetables
 kangaroo,Animal
-kiwi,Fruits & Vegetables
-kumquat,Fruits & Vegetables
-lemon,Fruits & Vegetables
-lettuce,Fruits & Vegetables
-lime,Fruits & Vegetables
 lion,Animal
 lobster,Animal
-loganberry,Fruits & Vegetables
-lychee,Fruits & Vegetables
-mango,Fruits & Vegetables
 monkey,Animal
 moose,Animal
 mouse,Animal
-mushroom,Fruits & Vegetables
-nectarine,Fruits & Vegetables
 octopus,Animal
-opal,Gem
-orange,Fruits & Vegetables
 ostrich,Animal
 otter,Animal
 owl,Animal
-papaya,Fruits & Vegetables
-paper,School
-parsley,Fruits & Vegetables
-pea,Fruits & Vegetables
-peach,Fruits & Vegetables
 peacock,Animal
-peanut,Fruits & Vegetables
-pear,Fruits & Vegetables
-pearl,Gem
-pecan,Fruits & Vegetables
-pencil,School
 penguin,Animal
-pepper,Fruits & Vegetables
-peridot,Gem
-persimmon,Fruits & Vegetables
 pig,Animal
 pigeon,Animal
-pineapple,Fruits & Vegetables
-pistachio,Fruits & Vegetables
-plum,Fruits & Vegetables
-pomegranate,Fruits & Vegetables
-potato,Fruits & Vegetables
-pumpkin,Fruits & Vegetables
 python,Animal
-quartz,Gem
-quince,Fruits & Vegetables
-quinoa,Fruits & Vegetables
 rabbit,Animal
-radish,Fruits & Vegetables
-raspberry,Fruits & Vegetables
 rat,Animal
 raven,Animal
-rhubarb,Fruits & Vegetables
-rowan,Fruits & Vegetables
-ruby,Gem
-rutabaga,Fruits & Vegetables
-sapphire,Gem
-sardonyx,Gem
+salmon,Animal
 seal,Animal
-serviceberry,Fruits & Vegetables
 sheep,Animal
 sloth,Animal
 snail,Animal
 snake,Animal
 spider,Animal
 squirrel,Animal
-strawberry,Fruits & Vegetables
-sugilite,Gem
 swan,Animal
-tangerine,Fruits & Vegetables
-teacher,School
-tomato,Fruits & Vegetables
-topaz,Gem
-turquoise,Gem
-watermelon,Fruits & Vegetables
 weasel,Animal
 whale,Animal
 wolf,Animal
-yam,Fruits & Vegetables
 zebra,Animal
-zircon,Gem
+aquamarine,Colors
+azure,Colors
+beige,Colors
+bisque,Colors
+black,Colors
+blue,Colors
+brown,Colors
+celadon,Colors
+cerulean,Colors
+chartreuse,Colors
+cinnabar,Colors
+coral,Colors
+crimson,Colors
+cyan,Colors
+fuchsia,Colors
+gold,Colors
+goldenrod,Colors
+green,Colors
+grey,Colors
+indigo,Colors
+ivory,Colors
+khaki,Colors
+lavender,Colors
+lemon,Colors
+lime,Colors
+magenta,Colors
+maroon,Colors
+mauve,Colors
+navy,Colors
+olive,Colors
+orange,Colors
+peach,Colors
+periwinkle,Colors
+pewter,Colors
+pink,Colors
+purple,Colors
+red,Colors
+saffron,Colors
+salmon,Colors
+sienna,Colors
+silver,Colors
+tan,Colors
+taupe,Colors
+teal,Colors
+turquoise,Colors
+umber,Colors
+vermillion,Colors
+violet,Colors
+viridian,Colors
+white,Colors
+yellow,Colors
+CPU,Computers
+FTP,Computers
+HTML,Computers
+HTTP,Computers
+Linux,Computers
+RAM,Computers
+SSH,Computers
+SSL,Computers
+TLS,Computers
+Unicode,Computers
+Unix,Computers
+Windows,Computers
+assembly,Computers
+browser,Computers
+compiler,Computers
+daemon,Computers
+disk,Computers
+download,Computers
+email,Computers
+emoji,Computers
+ethernet,Computers
+internet,Computers
+kernel,Computers
+keyboard,Computers
+laptop,Computers
+macOS,Computers
+memory,Computers
+monitor,Computers
+mouse,Computers
+password,Computers
+printer,Computers
+server,Computers
+shell,Computers
+sudo,Computers
+upload,Computers
+username,Computers
+web,Computers
+almond,Fruits & Vegetables
+apple,Fruits & Vegetables
+apricot,Fruits & Vegetables
+artichoke,Fruits & Vegetables
+avocado,Fruits & Vegetables
+banana,Fruits & Vegetables
+blackberry,Fruits & Vegetables
+blueberry,Fruits & Vegetables
+breadfruit,Fruits & Vegetables
+broccoli,Fruits & Vegetables
+cabbage,Fruits & Vegetables
+cantaloupe,Fruits & Vegetables
+carrot,Fruits & Vegetables
+cashew,Fruits & Vegetables
+cauliflower,Fruits & Vegetables
+cherry,Fruits & Vegetables
+cilantro,Fruits & Vegetables
+coconut,Fruits & Vegetables
+corn,Fruits & Vegetables
+crabapple,Fruits & Vegetables
+cranberry,Fruits & Vegetables
+cucumber,Fruits & Vegetables
+currant,Fruits & Vegetables
+date,Fruits & Vegetables
+durian,Fruits & Vegetables
+elderberry,Fruits & Vegetables
+garlic,Fruits & Vegetables
+grape,Fruits & Vegetables
+grapefruit,Fruits & Vegetables
+guava,Fruits & Vegetables
+honeydew,Fruits & Vegetables
+huckleberry,Fruits & Vegetables
+jujube,Fruits & Vegetables
+juneberry,Fruits & Vegetables
+kiwi,Fruits & Vegetables
+kumquat,Fruits & Vegetables
+lemon,Fruits & Vegetables
+lettuce,Fruits & Vegetables
+lime,Fruits & Vegetables
+loganberry,Fruits & Vegetables
+lychee,Fruits & Vegetables
+mango,Fruits & Vegetables
+mushroom,Fruits & Vegetables
+nectarine,Fruits & Vegetables
+olive,Fruits & Vegetables
+orange,Fruits & Vegetables
+papaya,Fruits & Vegetables
+parsley,Fruits & Vegetables
+pea,Fruits & Vegetables
+peach,Fruits & Vegetables
+peanut,Fruits & Vegetables
+pear,Fruits & Vegetables
+pecan,Fruits & Vegetables
+pepper,Fruits & Vegetables
+persimmon,Fruits & Vegetables
+pineapple,Fruits & Vegetables
+pistachio,Fruits & Vegetables
+plum,Fruits & Vegetables
+pomegranate,Fruits & Vegetables
+potato,Fruits & Vegetables
+pumpkin,Fruits & Vegetables
+quince,Fruits & Vegetables
+quinoa,Fruits & Vegetables
+radish,Fruits & Vegetables
+raspberry,Fruits & Vegetables
+rhubarb,Fruits & Vegetables
+rowan,Fruits & Vegetables
+rutabaga,Fruits & Vegetables
+serviceberry,Fruits & Vegetables
+strawberry,Fruits & Vegetables
+tangerine,Fruits & Vegetables
+tomato,Fruits & Vegetables
+watermelon,Fruits & Vegetables
+yam,Fruits & Vegetables
 zucchini,Fruits & Vegetables
+agate,Gem
+alexandrite,Gem
+amethyst,Gem
+aquamarine,Gem
+diamond,Gem
+emerald,Gem
+garnet,Gem
+jasper,Gem
+opal,Gem
+pearl,Gem
+peridot,Gem
+quartz,Gem
+ruby,Gem
+sapphire,Gem
+sardonyx,Gem
+sugilite,Gem
+topaz,Gem
+turquoise,Gem
+zircon,Gem
+algebra,School
+biology,School
+blackboard,School
+book,School
+calculator,School
+calculus,School
+chalk,School
+class,School
+classroom,School
+computer,School
+desk,School
+detention,School
+essay,School
+globe,School
+history,School
+homework,School
+library,School
+locker,School
+map,School
+math,School
+paper,School
+pencil,School
+physics,School
+recess,School
+science,School
+teacher,School
