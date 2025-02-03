@@ -107,7 +107,7 @@ fn iter_words<R: std::io::Read>(reader: R) -> csv::DeserializeRecordsIntoIter<R,
 }
 
 fn word_from_csv<R: std::io::Read>(reader: R) -> Option<Result<WordWithHint, csv::Error>> {
-    iter_words(reader).choose(&mut rand::thread_rng())
+    iter_words(reader).choose(&mut rand::rng())
 }
 
 #[cfg(test)]
