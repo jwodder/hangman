@@ -49,9 +49,16 @@ impl<W: Write> Screen<W> {
         let normal_modifiers = KeyModifiers::NONE | KeyModifiers::SHIFT;
         loop {
             match read().map_err(ScreenError::Read)? {
-                Event::Key(KeyEvent {
-                    code: KeyCode::Esc, ..
-                }) => return Ok(None),
+                Event::Key(
+                    KeyEvent {
+                        code: KeyCode::Esc, ..
+                    }
+                    | KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: KeyModifiers::CONTROL,
+                        ..
+                    },
+                ) => return Ok(None),
                 Event::Key(KeyEvent {
                     code,
                     modifiers,

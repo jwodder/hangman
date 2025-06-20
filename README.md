@@ -24,8 +24,8 @@ word.  If six incorrect guesses are made before the word is completely
 uncovered, you lose (though you will get to see the full word as a
 consolation).
 
-You can quit the game early at any time by pressing Escape, though you won't
-find out what the secret word was that way.
+You can quit the game early at any time by pressing Escape or Ctrl-C, though
+you won't find out what the secret word was that way.
 
 Currently, only ASCII letters can be guessed; if the secret word contains any
 other kinds of characters, they will be revealed from the start of play rather
