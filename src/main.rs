@@ -22,7 +22,17 @@ impl Command {
                 Arg::Short('h') | Arg::Long("help") => return Ok(Command::Help),
                 Arg::Short('V') | Arg::Long("version") => return Ok(Command::Version),
                 Arg::Short('w') | Arg::Long("word") => {
-                    word_source = WordSource::Fixed(parser.value()?.parse()?);
+                    word_source = WordSource::Fixed(WordWithHint {
+                        word: parser.value()?.parse()?,
+                        hint: None,
+                    });
+                }
+                Arg::Short('H') | Arg::Long("hint") => {
+                    if let WordSource::Fixed(ref mut wwh) = word_source {
+                        wwh.hint = Some(parser.value()?.string()?);
+                    } else {
+                        return Err("--hint requires --word".into());
+                    }
                 }
                 Arg::Short('f') | Arg::Long("words-file") => {
                     word_source = WordSource::File(InputArg::from_arg(parser.value()?));
@@ -37,7 +47,7 @@ impl Command {
         match self {
             Command::Run(word_source) => Controller::new(word_source.fetch()?)?.run()?,
             Command::Help => {
-                println!("Usage: hangman [-f <FILE>|-w <WORD>]");
+                println!("Usage: hangman [<options>]");
                 println!();
                 println!("Play Hangman in your terminal");
                 println!();
@@ -50,6 +60,9 @@ impl Command {
                     "                    Use <WORD> as the secret word.  Good for testing and"
                 );
                 println!("                    playing against others.");
+                println!();
+                println!("  -H <HINT>, --hint <HINT>");
+                println!("                    Use <HINT> as the hint for a --word.");
                 println!();
                 println!("  -h, --help        Display this help message and exit");
                 println!("  -V, --version     Show the program version and exit");
