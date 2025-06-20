@@ -2,7 +2,7 @@
 name = "hangman"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.82"
 description = "Play Hangman in your terminal"
 authors = ["John Thorvald Wodder II <hangman@varonathe.org>"]
 repository = "https://github.com/jwodder/hangman"
@@ -13,6 +13,7 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.75"
+console = "0.15.11"
 crossterm = { version = "0.29.0", default-features = false, features = ["events", "windows"] }
 csv = "1.3.0"
 lexopt = "0.3.0"
@@ -23,8 +24,6 @@ thiserror = "2.0.11"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
-strip-ansi-escapes = "0.2.0"
-unicode-width = "0.2.0"
 
 [lints.rust]
 # Lint groups:
