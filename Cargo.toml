@@ -2,7 +2,7 @@
 name = "hangman"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.82"
 description = "Play Hangman in your terminal"
 authors = ["John Thorvald Wodder II <hangman@varonathe.org>"]
 repository = "https://github.com/jwodder/hangman"

@@ -119,48 +119,29 @@ pub(crate) enum ScreenError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct Frame {
-    lines: Vec<String>,
-    width: usize,
-    height: usize,
-}
+struct Frame(Vec<Line>);
 
 impl Frame {
     fn with_capacity(capacity: usize) -> Frame {
-        Frame {
-            lines: Vec::with_capacity(capacity),
-            width: 0,
-            height: 0,
-        }
+        Frame(Vec::with_capacity(capacity))
     }
 
-    fn push<S: Into<String>>(&mut self, line: S) {
-        let line = line.into();
-        self.width = self.width.max(measure_text_width(&line));
-        self.height += 1;
-        self.lines.push(line);
+    fn push(&mut self, line: Line) {
+        self.0.push(line);
     }
 
-    fn pad_to_width(&mut self, width: usize) {
-        self.width = self.width.max(width);
+    fn push_in_width(&mut self, content: String, width: usize) {
+        self.push(Line {
+            content,
+            center_in_width: Some(width),
+        });
     }
 
-    fn push_centered<S: Into<String>>(&mut self, line: S) {
-        let mut line = line.into();
-        let width = measure_text_width(&line);
-        if width > self.width {
-            let indent = " ".repeat((width - self.width) / 2);
-            for ln in &mut self.lines {
-                if !ln.is_empty() {
-                    ln.insert_str(0, &indent);
-                }
-            }
-            self.width = width;
-        } else if width < self.width && !line.is_empty() {
-            line = " ".repeat((self.width - width) / 2) + &line;
-        }
-        self.height += 1;
-        self.lines.push(line);
+    fn push_centered(&mut self, content: String) {
+        self.push(Line {
+            content,
+            center_in_width: None,
+        });
     }
 
     fn lines_in_area(
@@ -168,27 +149,40 @@ impl Frame {
         width: u16,
         height: u16,
     ) -> impl Iterator<Item = (u16, u16, String)> + '_ {
-        let width = usize::from(width);
-        let Ok(left_margin) = u16::try_from(width.saturating_sub(self.width) / 2) else {
-            unreachable!("(u16 - int) / 2 should fit in a u16");
-        };
         let height = usize::from(height);
-        let Ok(top_margin) = u16::try_from(height.saturating_sub(self.height) / 2) else {
+        let Ok(top_margin) = u16::try_from(height.saturating_sub(self.0.len()) / 2) else {
             unreachable!("(u16 - int) / 2 should fit in a u16");
         };
-        self.lines
+        self.0
             .iter()
             .take(height)
             .zip(top_margin..)
-            .map(move |(line, y)| (y, left_margin, truncate_str(line, width, "").into_owned()))
+            .map(move |(line, y)| {
+                let (x, txt) = line.render(width);
+                (y, x, txt)
+            })
     }
 }
 
-impl Extend<String> for Frame {
-    fn extend<I: IntoIterator<Item = String>>(&mut self, iter: I) {
-        for line in iter {
-            self.push(line);
-        }
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct Line {
+    content: String,
+    center_in_width: Option<usize>,
+}
+
+impl Line {
+    fn render(&self, max_width: u16) -> (u16, String) {
+        let max_width = usize::from(max_width);
+        let my_width = self
+            .center_in_width
+            .unwrap_or_else(|| measure_text_width(&self.content));
+        let Ok(left_margin) = u16::try_from(max_width.saturating_sub(my_width) / 2) else {
+            unreachable!("(u16 - int) / 2 should fit in a u16");
+        };
+        (
+            left_margin,
+            truncate_str(&self.content, max_width, "").into_owned(),
+        )
     }
 }
 
@@ -211,13 +205,13 @@ impl Content {
     const HEIGHT: usize = Content::GALLOWS_HEIGHT + 8;
 
     fn render(self) -> Frame {
-        let mut frame = Frame::with_capacity(Content::HEIGHT);
-        if let Some(hint) = self.hint {
-            frame.push(format!("Hint: {hint}"));
-        } else {
-            frame.push(String::new());
-        }
-        frame.push(String::new());
+        let mut frame = Frame::with_capacity(Self::HEIGHT);
+        frame.push_in_width(
+            self.hint
+                .map_or_else(String::new, |hint| format!("Hint: {hint}")),
+            Self::WIDTH,
+        );
+        frame.push_in_width(String::new(), Self::WIDTH);
         let mut hud = Vec::with_capacity(Content::GALLOWS_HEIGHT);
         for row in Content::draw_gallows(self.gallows, self.message.gallows_advanced()) {
             hud.push(format!("{}{:gutter$}", row, "", gutter = Content::GUTTER));
@@ -242,9 +236,10 @@ impl Content {
                 ln.push(opt.unwrap_or(' '));
             }
         }
-        frame.extend(hud);
-        frame.push(String::new());
-        frame.pad_to_width(Content::WIDTH);
+        for ln in hud {
+            frame.push_in_width(ln, Self::WIDTH);
+        }
+        frame.push_in_width(String::new(), Self::WIDTH);
         let mut wordline = String::with_capacity(self.word_display.len() * 2 - 1);
         let mut first = true;
         for ch in self.word_display {
@@ -254,13 +249,13 @@ impl Content {
             write!(wordline, "{ch}").unwrap();
         }
         frame.push_centered(wordline);
-        frame.push(String::new());
+        frame.push_in_width(String::new(), Self::WIDTH);
         frame.push_centered(self.message.to_string());
-        frame.push(String::new());
+        frame.push_in_width(String::new(), Self::WIDTH);
         if self.message.is_game_over() {
-            frame.push_centered("Press the Any Key to exit.");
+            frame.push_centered(String::from("Press the Any Key to exit."));
         } else {
-            frame.push(String::new());
+            frame.push_in_width(String::new(), Self::WIDTH);
         }
         frame
     }
@@ -453,6 +448,29 @@ mod tests {
         use super::*;
         use pretty_assertions::assert_eq;
 
+        fn draw_frame(frame: Frame, width: u16, height: u16) -> Vec<String> {
+            let mut lines = Vec::with_capacity(usize::from(height));
+            for (y, x, line) in frame.lines_in_area(width, height) {
+                let y = usize::from(y);
+                let x = usize::from(x);
+                if lines.is_empty() {
+                    lines.extend(std::iter::repeat_n(String::new(), y));
+                } else {
+                    assert_eq!(y, lines.len());
+                }
+                if line.is_empty() {
+                    lines.push(line);
+                } else {
+                    lines.push(" ".repeat(x) + &line);
+                }
+            }
+            lines.extend(std::iter::repeat_n(
+                String::new(),
+                usize::from(height) - lines.len(),
+            ));
+            lines
+        }
+
         #[test]
         fn start() {
             let content = Content {
@@ -498,19 +516,21 @@ mod tests {
             };
             let frame = content.render();
             assert_eq!(
-                frame.lines,
+                draw_frame(frame, 50, 15),
                 [
-                    "   Hint: A difficult word",
                     "",
-                    "     ┌───┐     A B C D E F",
-                    "     │         G H I J K L",
-                    "     │         M N O P Q R",
-                    "     │         S T U V W X",
-                    "   ──┴──       Y Z",
+                    "             Hint: A difficult word",
                     "",
-                    "         _ _ _ _ _ _",
+                    "               ┌───┐     A B C D E F",
+                    "               │         G H I J K L",
+                    "               │         M N O P Q R",
+                    "               │         S T U V W X",
+                    "             ──┴──       Y Z",
                     "",
-                    "Try to guess the secret word!",
+                    "                   _ _ _ _ _ _",
+                    "",
+                    "          Try to guess the secret word!",
+                    "",
                     "",
                     "",
                 ]
@@ -562,19 +582,21 @@ mod tests {
             };
             let frame = content.render();
             assert_eq!(
-                frame.lines,
+                draw_frame(frame, 50, 15),
                 [
                     "",
                     "",
-                    "     ┌───┐     A B C D E F",
-                    "     │         G H I J K L",
-                    "     │         M N O P Q R",
-                    "     │         S T U V W X",
-                    "   ──┴──       Y Z",
                     "",
-                    "         _ _ _ _ _ _",
+                    "               ┌───┐     A B C D E F",
+                    "               │         G H I J K L",
+                    "               │         M N O P Q R",
+                    "               │         S T U V W X",
+                    "             ──┴──       Y Z",
                     "",
-                    "Try to guess the secret word!",
+                    "                   _ _ _ _ _ _",
+                    "",
+                    "          Try to guess the secret word!",
+                    "",
                     "",
                     "",
                 ]
@@ -629,19 +651,21 @@ mod tests {
             };
             let frame = content.render();
             assert_eq!(
-                frame.lines,
+                draw_frame(frame, 50, 15),
                 [
-                    "        Hint: A difficult word",
                     "",
-                    "          ┌───┐       B C D E F",
-                    "          │         G H I J K L",
-                    "          │         M N O P Q R",
-                    "          │         S T U V W X",
-                    "        ──┴──       Y Z",
+                    "             Hint: A difficult word",
                     "",
-                    "              \x1B[1mA\x1B[m _ \x1B[1mA\x1B[m _ _ _",
+                    "               ┌───┐       B C D E F",
+                    "               │         G H I J K L",
+                    "               │         M N O P Q R",
+                    "               │         S T U V W X",
+                    "             ──┴──       Y Z",
                     "",
-                    "Correct!  There are 2 'A's in the word.",
+                    "                   \x1B[1mA\x1B[m _ \x1B[1mA\x1B[m _ _ _",
+                    "",
+                    "     Correct!  There are 2 'A's in the word.",
+                    "",
                     "",
                     "",
                 ]
@@ -693,19 +717,21 @@ mod tests {
             };
             let frame = content.render();
             assert_eq!(
-                frame.lines,
+                draw_frame(frame, 50, 15),
                 [
-                    "      Hint: A difficult word",
                     "",
-                    "        ┌───┐       B C D   F",
-                    "        │   \x1B[1;31mo\x1B[m     G H I J K L",
-                    "        │         M N O P Q R",
-                    "        │         S T U V W X",
-                    "      ──┴──       Y Z",
+                    "             Hint: A difficult word",
                     "",
-                    "            A _ A _ _ _",
+                    "               ┌───┐       B C D   F",
+                    "               │   \x1B[1;31mo\x1B[m     G H I J K L",
+                    "               │         M N O P Q R",
+                    "               │         S T U V W X",
+                    "             ──┴──       Y Z",
                     "",
-                    "Wrong!  There's no 'E' in the word.",
+                    "                   A _ A _ _ _",
+                    "",
+                    "       Wrong!  There's no 'E' in the word.",
+                    "",
                     "",
                     "",
                 ]
@@ -750,28 +776,30 @@ mod tests {
                     CharDisplay::Plain('B'),
                     CharDisplay::Plain('A'),
                     CharDisplay::Plain('C'),
-                    CharDisplay::Plain('U'),
+                    CharDisplay::Highlighted('U'),
                     CharDisplay::Plain('S'),
                 ],
                 message: Message::Won,
             };
             let frame = content.render();
             assert_eq!(
-                frame.lines,
+                draw_frame(frame, 50, 15),
                 [
-                    " Hint: A difficult word",
                     "",
-                    "   ┌───┐               F",
-                    "   │   o     G H   J K L",
-                    "   │  /|\\    M N O P Q R",
-                    "   │               V W X",
-                    " ──┴──       Y Z",
+                    "             Hint: A difficult word",
                     "",
-                    "       A B A C U S",
+                    "               ┌───┐               F",
+                    "               │   o     G H   J K L",
+                    "               │  /|\\    M N O P Q R",
+                    "               │               V W X",
+                    "             ──┴──       Y Z",
                     "",
-                    "        You win!",
+                    "                   A B A C \x1B[1mU\x1B[m S",
                     "",
-                    "Press the Any Key to exit.",
+                    "                     You win!",
+                    "",
+                    "            Press the Any Key to exit.",
+                    "",
                 ]
             );
         }
@@ -821,21 +849,23 @@ mod tests {
             };
             let frame = content.render();
             assert_eq!(
-                frame.lines,
+                draw_frame(frame, 50, 15),
                 [
-                    " Hint: A difficult word",
                     "",
-                    "   ┌───┐       B C D   F",
-                    "   │   o     G H   J K L",
-                    "   │  /|\\    M N   P Q  ",
-                    "   │  / \x1B[1;31m\\\x1B[m    S     V W X",
-                    " ──┴──         Z",
+                    "             Hint: A difficult word",
                     "",
-                    "       A \x1B[1mB\x1B[m A \x1B[1mC\x1B[m U \x1B[1mS\x1B[m",
+                    "               ┌───┐       B C D   F",
+                    "               │   o     G H   J K L",
+                    "               │  /|\\    M N   P Q  ",
+                    "               │  / \x1B[1;31m\\\x1B[m    S     V W X",
+                    "             ──┴──         Z",
                     "",
-                    " Oh dear, you are dead!",
+                    "                   A \x1B[1mB\x1B[m A \x1B[1mC\x1B[m U \x1B[1mS\x1B[m",
                     "",
-                    "Press the Any Key to exit.",
+                    "              Oh dear, you are dead!",
+                    "",
+                    "            Press the Any Key to exit.",
+                    "",
                 ]
             );
         }
