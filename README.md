@@ -13,7 +13,7 @@ This is a Rust program for playing a game of [Hangman][] in your terminal.
 Usage
 =====
 
-    hangman [-f <FILE>|-w <WORD>]
+    hangman [<options>]
 
 Play Hangman.  By default, the secret word is chosen at random from a built-in
 list, but it can also be chosen from a file you provide or set to a specific
@@ -48,3 +48,6 @@ Options
 
 - `-w <WORD>`, `--word <WORD>` — Use `<WORD>` as the secret word.  This is
   useful for testing or for setting up a game for an opponent to play.
+
+- `-H <HINT>`, `--hint <HINT>` — Use `<HINT>` as the hint for a word specified
+  with `--word`

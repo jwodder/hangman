@@ -75,7 +75,7 @@ pub(crate) struct WordWithHint {
 pub(crate) enum WordSource {
     #[default]
     Builtin,
-    Fixed(Word),
+    Fixed(WordWithHint),
     File(InputArg),
 }
 
@@ -85,7 +85,7 @@ impl WordSource {
             WordSource::Builtin => Ok(word_from_csv(WORDS)
                 .expect("builtin wordlist should be nonempty")
                 .expect("reading builtin wordlist should not fail")),
-            WordSource::Fixed(word) => Ok(WordWithHint { word, hint: None }),
+            WordSource::Fixed(word_with_hint) => Ok(word_with_hint),
             WordSource::File(infile) => {
                 let reader = infile.open().context("failed to open words file")?;
                 match word_from_csv(reader) {
