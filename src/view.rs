@@ -1,7 +1,7 @@
 use crate::model::Gallows;
 use crossterm::{
     cursor::{Hide, MoveTo, Show},
-    event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
+    event::{read, KeyCode, KeyEvent, KeyModifiers},
     queue,
     style::Print,
     terminal::{
@@ -48,36 +48,26 @@ impl<W: Write> Screen<W> {
     pub(crate) fn read_guess(&mut self) -> Result<Option<char>, ScreenError> {
         let normal_modifiers = KeyModifiers::NONE | KeyModifiers::SHIFT;
         loop {
-            match read().map_err(ScreenError::Read)? {
-                Event::Key(
-                    KeyEvent {
-                        code: KeyCode::Esc, ..
-                    }
-                    | KeyEvent {
-                        code: KeyCode::Char('c'),
-                        modifiers: KeyModifiers::CONTROL,
-                        ..
-                    },
-                ) => return Ok(None),
-                Event::Key(KeyEvent {
-                    code,
-                    modifiers,
-                    kind: KeyEventKind::Press,
-                    ..
-                }) => {
-                    if normal_modifiers.contains(modifiers) {
-                        if let KeyCode::Char(ch) = code {
-                            return Ok(Some(ch));
-                        }
-                    }
-                    self.beep()?;
+            let event = read().map_err(ScreenError::Read)?;
+            if let Some(KeyEvent {
+                code, modifiers, ..
+            }) = event.as_key_press_event()
+            {
+                if code == KeyCode::Esc
+                    || (modifiers, code) == (KeyModifiers::CONTROL, KeyCode::Char('c'))
+                {
+                    return Ok(None);
                 }
-                Event::Resize(columns, rows) => {
-                    self.columns = columns;
-                    self.rows = rows;
-                    self.draw()?;
+                if normal_modifiers.contains(modifiers) {
+                    if let KeyCode::Char(ch) = code {
+                        return Ok(Some(ch));
+                    }
                 }
-                _ => (),
+                self.beep()?;
+            } else if let Some((columns, rows)) = event.as_resize_event() {
+                self.columns = columns;
+                self.rows = rows;
+                self.draw()?;
             }
         }
     }
