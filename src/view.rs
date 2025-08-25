@@ -246,7 +246,7 @@ impl Content {
             if !std::mem::replace(&mut first, false) {
                 wordline.push(' ');
             }
-            write!(wordline, "{ch}").unwrap();
+            let _ = write!(wordline, "{ch}");
         }
         frame.push_centered(wordline);
         frame.push_in_width(String::new(), Self::WIDTH);
