@@ -52,17 +52,15 @@ impl Command {
                 println!("Play Hangman in your terminal");
                 println!();
                 println!("Options:");
-                println!("  -f <FILE>, --words-file <FILE>");
-                println!("                    Select a word at random from <FILE>");
+                println!("  -f FILE, --words-file FILE");
+                println!("                    Select a word at random from FILE");
                 println!();
-                println!("  -w <WORD>, --word <WORD>");
-                println!(
-                    "                    Use <WORD> as the secret word.  Good for testing and"
-                );
+                println!("  -w WORD, --word WORD");
+                println!("                    Use WORD as the secret word.  Good for testing and");
                 println!("                    playing against others.");
                 println!();
-                println!("  -H <HINT>, --hint <HINT>");
-                println!("                    Use <HINT> as the hint for a --word.");
+                println!("  -H HINT, --hint HINT");
+                println!("                    Use HINT as the hint for a --word.");
                 println!();
                 println!("  -h, --help        Display this help message and exit");
                 println!("  -V, --version     Show the program version and exit");

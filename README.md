@@ -35,10 +35,10 @@ than having to be guessed.
 Options
 -------
 
-- `-f <FILE>`, `--words-file <FILE>` — Select a word at random from the given
-  file (or from standard input if `<FILE>` is `-`).  Each word in the file must
-  be on a line of its own.  A word may optionally be given a hint by appending
-  a comma and then the hint, e.g.:
+- `-f FILE`, `--words-file FILE` — Select a word at random from the given file
+  (or from standard input if `FILE` is `-`).  Each word in the file must be on
+  a line of its own.  A word may optionally be given a hint by appending a
+  comma and then the hint, e.g.:
 
     ```csv
     elephant,Animal
@@ -46,8 +46,8 @@ Options
     chalk,Mineral
     ```
 
-- `-w <WORD>`, `--word <WORD>` — Use `<WORD>` as the secret word.  This is
-  useful for testing or for setting up a game for an opponent to play.
+- `-w WORD`, `--word WORD` — Use `WORD` as the secret word.  This is useful for
+  testing or for setting up a game for an opponent to play.
 
-- `-H <HINT>`, `--hint <HINT>` — Use `<HINT>` as the hint for a word specified
-  with `--word`
+- `-H HINT`, `--hint HINT` — Use `HINT` as the hint for a word specified with
+  `--word`
